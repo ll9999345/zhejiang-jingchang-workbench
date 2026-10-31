@@ -1,0 +1,46 @@
+import { createRequire } from 'node:module';
+import { spawn } from 'node:child_process';
+import { promises as fs } from 'node:fs';
+import path from 'node:path';
+import assert from 'node:assert/strict';
+const require=createRequire('/Users/mjd-ppps/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright/package.json');
+const {chromium}=require('playwright');
+const root=process.cwd(),artifacts=path.join(root,'artifacts','qa-'+Date.now());await fs.mkdir(artifacts,{recursive:true});
+const server=spawn(process.execPath,['server.mjs'],{cwd:root,env:{...process.env,PORT:'4769',JINGCHANG_DATA_DIR:path.join(artifacts,'data')},stdio:['ignore','pipe','pipe']});
+let browser;
+try {
+  await new Promise((resolve,reject)=>{server.stdout.once('data',resolve);server.once('error',reject);setTimeout(()=>reject(new Error('server startup timeout')),8000).unref();});
+  browser=await chromium.launch({executablePath:'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',headless:true});
+  const page=await browser.newPage({viewport:{width:1440,height:960},baseURL:'http://127.0.0.1:4769'});const errors=[];page.on('pageerror',e=>errors.push(e.message));
+  await page.addInitScript(()=>{window.__webtools={};Object.defineProperty(document,'modelContext',{value:{registerTool(t){window.__webtools[t.name]=t;}}});});
+  await page.goto('http://127.0.0.1:4769');await page.waitForSelector('.node');
+  await page.screenshot({path:path.join(artifacts,'01-canvas.png'),fullPage:true});
+  const registered=await page.evaluate(()=>Object.keys(window.__webtools));assert.equal(registered.length,2);
+  await page.evaluate(async()=>{let failed=false;try{await window.__webtools.add_jingchang_text_node.execute({type:'shell',title:'a',text:'b'});}catch{failed=true;}if(!failed)throw new Error('invalid WebMCP input accepted');});
+  await page.evaluate(async()=>window.__webtools.add_jingchang_text_node.execute({type:'script',title:'验收剧本',text:'第一镜：晨光落在窗前。\n\n第二镜：少女走出庭院。'}));
+  await page.locator('[data-action="split-script"]').click();await page.getByRole('button',{name:'应用 1 项操作'}).click();
+  await page.locator('.tabs [data-view="storyboard"]').click();await page.waitForSelector('.shot-card');assert.equal(await page.locator('.shot-card').count(),2);
+  const fixture=path.join(artifacts,'fixture.png');await fs.writeFile(fixture,Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aR8sAAAAASUVORK5CYII=','base64'));
+  await page.locator('#upload').setInputFiles(fixture);await page.waitForFunction(()=>document.querySelector('#save-status')?.textContent==='已保存到本机');
+  const ps=await (await page.request.get('/api/projects')).json();const id=ps[0].id;
+  await page.waitForFunction(async(id)=>{const p=await(await fetch('/api/projects/'+id)).json();return p.assets.length===1;},id);
+  const p=await (await page.request.get('/api/projects/'+id)).json();
+  for(const s of p.shots){await page.locator(`[data-edit-shot="${s.id}"]`).last().click();await page.locator('[name="assetId"]').selectOption(p.assets[0].id);await page.locator('[name="duration"]').fill('0.5');await page.locator('[name="dialogue"]').fill('测试对白');await page.getByRole('button',{name:'保存镜头',exact:true}).click();}
+  await page.screenshot({path:path.join(artifacts,'02-storyboard.png'),fullPage:true});
+  await page.locator('.tabs [data-view="timeline"]').click();await page.locator('[data-action="render-video"]').click();
+  await page.locator('[data-action=confirm-render]').click();await page.waitForSelector('.download-link',{timeout:60000});
+  const outputUrl=await page.locator('.download-link').first().getAttribute('href');const rendered=await page.request.get(outputUrl);assert.equal(rendered.status(),200);assert.ok((await rendered.body()).length>1000);
+  await page.screenshot({path:path.join(artifacts,'03-render.png'),fullPage:true});
+  await page.locator('[data-action="close-modal"]').click();
+  await page.locator('.tabs [data-view="canvas"]').click();await page.locator('[data-action="agent"]').click();
+  await page.locator('[data-action="layout"]').click();await page.locator('[data-action="fit"]').click();
+  await page.waitForFunction(()=>document.querySelector('#save-status')?.textContent==='已保存到本机');
+  const saved=await(await page.request.get('/api/projects/'+id)).json();assert.equal(saved.shots.length,2);
+  const stale=await page.request.put('/api/projects/'+id,{data:{...saved,revision:0}});assert.equal(stale.status(),409);
+  const hostile=await page.request.post('/api/projects',{data:{name:'x'},headers:{Origin:'https://untrusted.example'}});assert.equal(hostile.status(),403);
+  await page.reload();await page.waitForSelector('.node');assert.equal(await page.locator('.node').count(),2);
+  await page.setViewportSize({width:390,height:844});await page.screenshot({path:path.join(artifacts,'04-mobile.png'),fullPage:true});
+  assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));assert.deepEqual(errors,[]);
+  await fs.writeFile(path.join(artifacts,'result.json'),JSON.stringify({passed:true,checks:['project persistence','WebMCP registration/read/write/invalid input','script split plan/apply','asset import','shot edit','MP4 render and download','stale revision protection','cross-origin protection','mobile overflow','no page errors'],renderUrl:outputUrl},null,2));
+  console.log(JSON.stringify({passed:true,artifacts,errors}));
+}finally{await browser?.close();server.kill('SIGTERM');}

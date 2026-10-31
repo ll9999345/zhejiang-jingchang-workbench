@@ -1,0 +1,621 @@
+/* Independent visual layer. Layout, task progress and provider state stay in their owners. */
+:root,
+.studio[data-theme="dark"] {
+  --bg: #101816;
+  --panel: #19231f;
+  --panel-soft: #202e27;
+  --raised: #25372d;
+  --border: #354b40;
+  --line: #354b40;
+  --line-strong: #486252;
+  --text: #edf5ef;
+  --muted: #a6b9ad;
+  --subtle: #8ca294;
+  --accent: #7bd9ad;
+  --accent-ink: #113d2b;
+  --accent-soft: #7bd9ad17;
+  --green: #7bd9ad;
+  --green-dark: #a2ebc4;
+  --green-soft: #263f32;
+  --jade-glass: #19251f;
+  --jade-glass-translucent: #19251fdc;
+  --jade-border: #99d3af26;
+  --jade-focus: #7bd9ad36;
+  --jade-ambient: #48a97910;
+  --jade-shadow: 0 12px 38px #00000026;
+  --jade-meter-track: #a5cfb924;
+  --jade-meter: #7bd9ad;
+  --jade-warning: #e7c88b;
+  --jade-danger: #f0a49a;
+  --jade-ease: cubic-bezier(.2, .75, .25, 1);
+  color-scheme: dark;
+}
+
+/* Keep the studio's explicit light/dark choice, including its body-level island. */
+.studio[data-theme="light"],
+body:has(> .studio[data-theme="light"]),
+#task-island[data-theme="light"] {
+  --bg: #f1f6f2;
+  --panel: #fcfefc;
+  --panel-soft: #f0f6f1;
+  --raised: #e6f1e8;
+  --border: #d3e2d7;
+  --line: #d3e2d7;
+  --line-strong: #b9d1c1;
+  --text: #1c3527;
+  --muted: #587261;
+  --subtle: #687e70;
+  --accent: #26734f;
+  --accent-ink: #ffffff;
+  --accent-soft: #28784e10;
+  --green: #26734f;
+  --green-dark: #1b593b;
+  --green-soft: #e5f2e9;
+  --jade-glass: #fbfefb;
+  --jade-glass-translucent: #fbfefbdb;
+  --jade-border: #51876930;
+  --jade-focus: #28784e22;
+  --jade-ambient: #61af7911;
+  --jade-shadow: 0 12px 38px #2c563b12;
+  --jade-meter-track: #42745620;
+  --jade-meter: #2e8459;
+  --jade-warning: #8b611f;
+  --jade-danger: #ae4035;
+  color-scheme: light;
+}
+
+body {
+  color: var(--text);
+  background: var(--bg);
+  background-image: radial-gradient(ellipse at 75% 0%, var(--jade-ambient), transparent 58%);
+}
+
+.app .surface,
+.studio .work-area {
+  background-image: radial-gradient(ellipse at 77% 14%, var(--jade-ambient), transparent 58%),
+    radial-gradient(ellipse at 10% 85%, var(--jade-ambient), transparent 55%);
+}
+
+.studio .canvas-wrap {
+  background-image: radial-gradient(var(--line-strong) .7px, transparent .7px),
+    radial-gradient(ellipse at 80% 10%, var(--jade-ambient), transparent 58%);
+  background-size: 19px 19px, 100% 100%;
+}
+
+.app .canvas {
+  background-image: radial-gradient(#87b89c30 .8px, transparent .8px);
+}
+
+.app .canvas::after {
+  box-shadow: inset 0 20px 90px #10181660;
+}
+
+/* Restrained glass on persistent chrome; media and content keep opaque surfaces. */
+.app .topbar,
+.app .rail,
+.app .panel,
+.app .dock,
+.app .canvas-controls,
+.app .floating-menu,
+.studio .topbar,
+.studio .left-panel,
+.studio .right-panel,
+.studio .canvas-toolbar,
+.studio .mobile-runbar,
+body:has(main > .conversation) > header,
+body:has(main > .conversation) main > aside,
+.conversation .connection,
+dialog {
+  background: var(--jade-glass);
+  border-color: var(--jade-border);
+}
+
+.app .dock,
+.app .floating-menu,
+.app .canvas-controls,
+dialog {
+  box-shadow: var(--jade-shadow), inset 0 1px 0 #b5e6c60a;
+}
+
+dialog { color: var(--text); }
+
+dialog::backdrop { background: #091b13a3; }
+
+.studio[data-theme="light"] dialog::backdrop { background: #213e2d69; }
+
+.app .node {
+  background: var(--panel);
+  border-color: var(--line-strong);
+  box-shadow: 0 7px 22px #00000024;
+}
+
+.app .node.selected,
+.studio .workflow-node.active-node {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--jade-focus), 0 8px 25px #00000015;
+}
+
+.app .node-body { color: #c4d6cb; }
+.app .node-media { background: #111c16; }
+.app .edge { stroke: #64987a; }
+.app .port { border-color: var(--panel); }
+.app .rail .active,
+.app .filters .active,
+.app .message.user,
+.app .agent-mark,
+.app .fullscreen-drop {
+  background: var(--accent-soft);
+  border-color: var(--jade-border);
+}
+
+.app .agent-mark,
+.app .message .role,
+.app .suggestions .icon,
+.media-viewer-info summary,
+.media-viewer-dialog footer a,
+.media-viewer-node-link { color: var(--accent); }
+
+.app .tabs { background: #1c2922; border-color: var(--jade-border); }
+.app .tabs .active { background: #344d3f; color: var(--text); }
+.app .composer { background: #23342a; border-color: var(--line-strong); }
+.app .message:not(.user) { background: #233229; }
+.app .clip,
+.app .h3-clip { background: #2c4535; border-color: #537960; }
+.app #selection-box { background: #7bd9ad20; }
+.app .port.drop-valid { box-shadow: 0 0 0 5px var(--jade-focus); }
+.grid-tile.chosen { background: #7bd9ad20 !important; }
+.prompt-mention-menu > button[aria-selected="true"] {
+  background: var(--accent-soft);
+  border-color: var(--jade-border);
+}
+.studio .brand-mark { background: var(--green-soft); color: var(--green); }
+.studio .template-card.selected,
+.studio[data-theme="dark"] .template-card.selected { border-color: var(--line-strong); }
+.studio .node-port { border-color: var(--green); }
+.studio .online-dot,
+.studio .history-status.completed { background: var(--green); }
+.studio .online-dot { box-shadow: 0 0 0 3px var(--jade-focus); }
+.studio .mini-viewport { background: var(--accent-soft); }
+.studio .primary-button,
+.studio .dialog-actions button.primary-action {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-ink);
+  box-shadow: 0 3px 10px var(--jade-focus);
+}
+
+.studio .primary-button:hover,
+.studio .dialog-actions button.primary-action:hover { background: var(--green-dark); }
+.studio .inspector :is(input, select, textarea):focus,
+.studio .dialog-body :is(input, select, textarea):focus {
+  border-color: var(--green);
+  box-shadow: 0 0 0 2px var(--jade-focus);
+}
+
+/* Conversation is a separate page, so avoid changing unrelated canvas elements. */
+body:has(main > .conversation) {
+  background: var(--bg);
+  color: var(--text);
+}
+body:has(main > .conversation) :is(button, input, select, textarea) {
+  background: var(--panel);
+  border-color: var(--border);
+  color: var(--text);
+}
+body:has(main > .conversation) button:hover { background: var(--raised); }
+body:has(main > .conversation) button.primary,
+body:has(main > .conversation) button.primary:hover {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-ink);
+}
+body:has(main > .conversation) nav .active {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.conversation .bubble { background: var(--panel); border-color: var(--border); }
+.conversation .bubble.user,
+.conversation #composer.drag-over { background: var(--green-soft); }
+body:has(main > .conversation) :is(.muted, .empty),
+.conversation :is(.bubble small, .frame-grid figcaption) { color: var(--muted); }
+.conversation #job { color: var(--accent); }
+body:has(main > .conversation) :is(.video-attachment, .document-attachment, .message-document, .audio-attachment, .message-audio, .audio-preview, .document-icon, .notice) {
+  background: var(--panel-soft);
+  color: var(--text);
+}
+body:has(main > .conversation) :is(.video-attachment small, .document-attachment small, .message-document span, .audio-attachment small) { color: var(--muted); }
+.conversation .frame-grid img { background: var(--panel-soft); }
+
+/* The controller adds the pressed class only during an actual pointer press.
+   Independent scale preserves existing translate/rotate transforms. */
+button:not(:disabled),
+[role="button"]:not([aria-disabled="true"]) {
+  transition: background-color 150ms ease, border-color 150ms ease,
+    box-shadow 180ms ease, scale 110ms var(--jade-ease);
+}
+button[data-motion-active],
+[role="button"][data-motion-active] { will-change: scale; }
+button.is-spring-pressed:not(:disabled),
+[role="button"].is-spring-pressed:not([aria-disabled="true"]) { scale: .965; }
+button:focus-visible,
+[role="button"]:focus-visible { outline-color: var(--accent); }
+input[type="checkbox"],
+input[type="radio"] { accent-color: var(--accent); }
+
+/* Range dragging changes track thickness, never the range's actual value. */
+:root input[type="range"] {
+  --jade-track-height: 4px;
+  --jade-thumb-size: 15px;
+  appearance: none;
+  -webkit-appearance: none;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--accent);
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+input[type="range"].is-range-dragging:not(:disabled) {
+  --jade-track-height: 8px;
+  --jade-thumb-size: 19px;
+}
+input[type="range"]::-webkit-slider-runnable-track {
+  height: var(--jade-track-height);
+  border-radius: 999px;
+  background: linear-gradient(to right, var(--jade-meter) var(--range-progress, 0%), var(--jade-meter-track) var(--range-progress, 0%));
+  transition: height 150ms var(--jade-ease);
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: var(--jade-thumb-size);
+  height: var(--jade-thumb-size);
+  margin-top: calc((var(--jade-track-height) - var(--jade-thumb-size)) / 2);
+  border: 2px solid var(--panel);
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 1px 4px #00000025;
+  transition: width 150ms var(--jade-ease), height 150ms var(--jade-ease), margin-top 150ms var(--jade-ease), box-shadow 150ms ease;
+}
+input[type="range"].is-range-dragging::-webkit-slider-thumb {
+  box-shadow: 0 0 0 4px var(--jade-focus), 0 0 13px var(--jade-focus);
+}
+input[type="range"]::-moz-range-track {
+  height: var(--jade-track-height);
+  border-radius: 999px;
+  background: var(--jade-meter-track);
+  transition: height 150ms var(--jade-ease);
+}
+input[type="range"]::-moz-range-progress {
+  height: var(--jade-track-height);
+  border-radius: 999px;
+  background: var(--jade-meter);
+  transition: height 150ms var(--jade-ease);
+}
+input[type="range"]::-moz-range-thumb {
+  width: var(--jade-thumb-size);
+  height: var(--jade-thumb-size);
+  border: 2px solid var(--panel);
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 1px 4px #00000025;
+  transition: width 150ms var(--jade-ease), height 150ms var(--jade-ease), box-shadow 150ms ease;
+}
+input[type="range"].is-range-dragging::-moz-range-thumb {
+  box-shadow: 0 0 0 4px var(--jade-focus), 0 0 13px var(--jade-focus);
+}
+input[type="range"]:disabled { cursor: default; opacity: .5; }
+
+/* Compact task island: floating by default; the controller may place it into
+   measured header free space. It never determines whether a task is running. */
+.task-progress-track { height: 5px; overflow: hidden; border-radius: 999px; margin: 18px 0 9px; background: var(--jade-meter-track); }
+.task-progress-track > span { display: block; height: 100%; border-radius: inherit; background: var(--jade-meter); }
+.task-progress-track[data-indeterminate="true"] { background: repeating-linear-gradient(100deg, var(--jade-meter-track) 0 10px, var(--accent-soft) 10px 20px); }
+.task-progress-track[data-indeterminate="true"] > span { display: none; }
+.task-progress-label { display: block; color: var(--muted); font-size: 12px; margin-bottom: 12px; }
+.task-island-slot {
+  position: relative;
+  height: 40px;
+  min-width: 0;
+  flex: 0 1 280px;
+  z-index: 50;
+}
+#task-island {
+  position: fixed;
+  top: 144px;
+  right: 22px;
+  z-index: 50;
+  display: block;
+  width: 170px;
+  max-width: calc(100vw - 44px);
+  height: auto;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  overflow: visible;
+  color: var(--text);
+  font: inherit;
+  isolation: isolate;
+  background: transparent;
+  transition: width 410ms cubic-bezier(.2, .8, .2, 1.05);
+}
+.task-island-slot > #task-island {
+  position: relative;
+  inset: auto;
+  margin: 0 auto;
+  max-width: 100%;
+}
+#task-island:is([data-active="true"], .is-active) { width: 280px; }
+#task-island[data-anchored="true"] {
+  right: auto;
+  transform: translateX(-50%);
+}
+#task-island .task-island-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 40px;
+  height: 40px;
+  margin: 0;
+  padding: 0 13px;
+  border: 1px solid var(--jade-border);
+  border-radius: 999px;
+  background: var(--jade-glass);
+  color: var(--text);
+  box-shadow: 0 5px 20px #0000001a, inset 0 1px 0 #d2f4de0a;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+}
+#task-island .task-island-toggle:hover { border-color: var(--line-strong); }
+#task-island :is(.task-island-status-dot, .task-island-dot, .status-dot) {
+  width: 6px;
+  height: 6px;
+  flex: 0 0 6px;
+  border-radius: 50%;
+  background: var(--muted);
+}
+#task-island:is([data-active="true"], .is-active) :is(.task-island-status-dot, .task-island-dot, .status-dot) {
+  background: var(--accent);
+  box-shadow: 0 0 0 3px var(--jade-focus);
+}
+#task-island[data-tone="success"] :is(.task-island-status-dot, .task-island-dot, .status-dot) { background: var(--accent); }
+#task-island:is([data-tone="warning"], [data-state="paused"], [data-state="awaiting_approval"], [data-state="needs-approval"]) :is(.task-island-status-dot, .task-island-dot, .status-dot) {
+  background: var(--jade-warning);
+  box-shadow: none;
+}
+#task-island:is([data-tone="error"], [data-tone="danger"], [data-state="failed"], [data-state="error"]) :is(.task-island-status-dot, .task-island-dot, .status-dot) {
+  background: var(--jade-danger);
+  box-shadow: none;
+}
+#task-island .task-island-label {
+  flex: 0 0 auto;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+#task-island .task-island-summary {
+  min-width: 0;
+  flex: 1;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+}
+#task-island .task-island-chevron {
+  flex: 0 0 auto;
+  margin-left: auto;
+  color: var(--muted);
+  transition: rotate 180ms var(--jade-ease);
+}
+#task-island:is([data-expanded="true"], .is-expanded) .task-island-chevron,
+#task-island .task-island-toggle[aria-expanded="true"] .task-island-chevron { rotate: 180deg; }
+#task-island .task-island-body {
+  position: absolute;
+  top: 48px;
+  right: 0;
+  width: min(360px, calc(100vw - 44px));
+  max-height: min(510px, calc(100dvh - 148px));
+  padding: 18px;
+  border: 1px solid var(--jade-border);
+  border-radius: 20px;
+  background: var(--jade-glass);
+  color: var(--text);
+  box-shadow: var(--jade-shadow), inset 0 1px 0 #d2f4de0a;
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-strong) transparent;
+}
+#task-island [hidden] { display: none !important; }
+#task-island .task-island-announcement {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+#task-island .task-island-title {
+  margin: 0 0 7px;
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+#task-island .task-island-detail {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.65;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+#task-island .task-island-meter {
+  height: 5px;
+  margin: 16px 0 10px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--jade-meter-track);
+}
+#task-island .task-island-meter > :is(.task-island-fill, .task-island-meter-fill, span) {
+  display: block;
+  height: 100%;
+  max-width: 100%;
+  border-radius: inherit;
+  background: var(--jade-meter);
+  transition: width 220ms var(--jade-ease);
+}
+/* No fabricated fraction, travelling bar or active animation for unknown work. */
+#task-island .task-island-meter[data-indeterminate]:not([data-indeterminate="false"]) {
+  background: repeating-linear-gradient(110deg, var(--jade-meter-track) 0 5px, transparent 5px 9px);
+}
+#task-island .task-island-meter[data-indeterminate]:not([data-indeterminate="false"]) > * {
+  visibility: hidden;
+  animation: none;
+  transition: none;
+}
+#task-island .task-island-meta {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.6;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+#task-island .task-island-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
+}
+#task-island .task-island-actions button {
+  width: auto;
+  min-height: 33px;
+  padding: 7px 11px;
+  border: 1px solid var(--jade-border);
+  border-radius: 9px;
+  background: var(--accent-soft);
+  color: var(--text);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+#task-island .task-island-actions button:hover { border-color: var(--line-strong); }
+#task-island .task-island-actions button.primary { background: var(--accent); color: var(--accent-ink); }
+#task-island button:disabled { cursor: default; opacity: .45; }
+#task-island .task-island-list {
+  display: grid;
+  gap: 3px;
+  margin: 15px 0 0;
+  padding: 10px 0 0;
+  border-top: 1px solid var(--jade-border);
+  list-style: none;
+}
+#task-island .task-island-list button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 9px;
+  width: 100%;
+  min-height: 35px;
+  margin: 0;
+  padding: 8px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted);
+  text-align: left;
+  font: inherit;
+  font-size: 11px;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+#task-island .task-island-list button:is(:hover, [aria-current="true"], [aria-pressed="true"], .active) {
+  background: var(--accent-soft);
+  color: var(--text);
+}
+
+/* Opaque backgrounds above are the default for engines without glass support. */
+@supports ((backdrop-filter: blur(12px)) or (-webkit-backdrop-filter: blur(12px))) {
+  .app :is(.topbar, .rail, .panel, .dock, .canvas-controls, .floating-menu),
+  .studio :is(.topbar, .left-panel, .right-panel, .canvas-toolbar, .mobile-runbar),
+  body:has(main > .conversation) > header,
+  body:has(main > .conversation) main > aside,
+  .conversation .connection,
+  dialog,
+  #task-island .task-island-toggle,
+  #task-island .task-island-body {
+    background: var(--jade-glass-translucent);
+    -webkit-backdrop-filter: blur(16px) saturate(115%);
+    backdrop-filter: blur(16px) saturate(115%);
+  }
+}
+
+@media (max-width: 1250px) {
+  .task-island-slot {
+    position: fixed;
+    top: 144px;
+    right: 22px;
+    width: 190px;
+    height: 40px;
+  }
+  #task-island,
+  #task-island:is([data-active="true"], .is-active) { width: 190px; }
+}
+
+@media (max-width: 800px) {
+  .task-island-slot,
+  #task-island {
+    position: fixed;
+    top: auto;
+    right: 12px;
+    bottom: max(130px, calc(112px + env(safe-area-inset-bottom, 0px)));
+    width: 190px;
+    max-width: calc(100vw - 24px);
+  }
+  .task-island-slot > #task-island { position: relative; inset: auto; }
+  #task-island .task-island-body {
+    top: auto;
+    right: 0;
+    bottom: 48px;
+    width: min(360px, calc(100vw - 24px));
+    max-width: calc(100vw - 24px);
+    max-height: min(460px, calc(100dvh - 210px));
+    padding: 16px;
+    border-radius: 17px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  button,
+  [role="button"],
+  #task-island,
+  #task-island *,
+  input[type="range"] {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+  button.is-spring-pressed,
+  [role="button"].is-spring-pressed { scale: none !important; }
+  #task-island :is(.task-island-status-dot, .task-island-dot, .status-dot) { box-shadow: none !important; }
+  input[type="range"]::-webkit-slider-runnable-track { transition: none !important; }
+  input[type="range"]::-webkit-slider-thumb { transition: none !important; box-shadow: none !important; }
+  input[type="range"]::-moz-range-track { transition: none !important; }
+  input[type="range"]::-moz-range-progress { transition: none !important; }
+  input[type="range"]::-moz-range-thumb { transition: none !important; box-shadow: none !important; }
+}

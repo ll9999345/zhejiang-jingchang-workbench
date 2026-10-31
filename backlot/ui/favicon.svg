@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="jade" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#238361"/>
+      <stop offset="1" stop-color="#0e4d3b"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="17" fill="#0d1114"/>
+  <rect x="5" y="5" width="54" height="54" rx="14" fill="url(#jade)"/>
+  <path d="M13 13h38v38H13z" fill="none" stroke="#d9b26a" stroke-opacity=".55" stroke-width="1.2"/>
+  <text x="32" y="43" text-anchor="middle" fill="#f5f2e9" font-family="PingFang SC, Noto Sans CJK SC, sans-serif" font-size="33" font-weight="600">浙</text>
+</svg>

@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" type="image/svg+xml" href="/ui/favicon.svg?v=20260930">
+<title>浙江文旅 · 项目库</title>
+<script>
+  // 项目库也必须从服务入口打开，避免双击源码文件后按钮失去同源后端。
+  if (window.location.protocol === "file:") {
+    window.location.replace("http://localhost:4750/");
+  }
+</script>
+<link rel="stylesheet" href="/ui/board.css">
+<style>
+  /* Library-only controls: keep the board stylesheet shared with the evidence view. */
+  .library-tools { display:flex; gap:10px; align-items:center; padding:18px 0 0; flex-wrap:wrap; }
+  .sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+  .library-search { flex:1 1 280px; min-height:38px; padding:8px 12px; border:1px solid var(--border); border-radius:8px; background:var(--surface); color:var(--text); font:inherit; }
+  .library-filter, .library-sort { min-height:38px; padding:8px 30px 8px 10px; border:1px solid var(--border); border-radius:8px; background:var(--surface); color:var(--text); font:inherit; }
+  .library-clear { min-height:38px; padding:7px 12px; border:1px solid var(--border); border-radius:8px; background:transparent; color:var(--text-2); cursor:pointer; }
+  .library-search:focus-visible, .library-filter:focus-visible, .library-sort:focus-visible, .library-clear:focus-visible { outline:2px solid var(--green); outline-offset:2px; }
+  .library-status { width:100%; color:var(--text-2); font-size:calc(12px * var(--fs-scale)); }
+  .library-error { margin-top:24px; padding:18px; border:1px solid var(--red); border-radius:10px; background:var(--red-dim); color:var(--text); }
+  .library-error button { margin-top:12px; padding:8px 12px; border:1px solid var(--red); border-radius:7px; background:transparent; color:inherit; cursor:pointer; }
+  .library-error button:focus-visible { outline:2px solid var(--green); outline-offset:2px; }
+  .library-empty-action { margin-top:12px; }
+  @media (max-width:640px) { .library-filter, .library-sort { flex:1 1 150px; } }
+</style>
+<link rel="stylesheet" href="/ui/studio.css?v=20261001a">
+<link rel="stylesheet" href="/ui/theme.css?v=20260930e">
+<script defer src="/ui/vendor/motion-12.23.24.js"></script>
+<script defer src="/ui/studio.js?v=20261002canvas"></script>
+</head>
+<body data-studio-page="library">
+<div class="wrap">
+  <header class="slate">
+    <div class="clapper"></div>
+    <div>
+      <span class="wordmark">Backlot</span>
+      <h1>你的作品</h1><p class="library-intro">接着上次的灵感，继续创作。</p>
+    </div>
+    <span class="chip" id="count"></span>
+    <div class="spacer"></div>
+    <button class="new-project-entry" id="newProjectButton" type="button">＋ 新建作品</button>
+    <span class="live idle" id="liveBadge"><span class="dot"></span><span id="liveText">IDLE</span></span>
+  </header>
+  <div class="library-tools" role="search" aria-label="筛选项目">
+    <label class="sr-only" for="projectSearch">搜索项目</label>
+    <input class="library-search" id="projectSearch" type="search" placeholder="搜索项目名称、编号或制作阶段…" autocomplete="off">
+    <label class="sr-only" for="projectFilter">项目状态</label>
+    <select class="library-filter" id="projectFilter" aria-label="按状态筛选">
+      <option value="all">全部状态</option><option value="pinned">已收藏</option>
+      <option value="live">制作中</option>
+      <option value="awaiting">待你处理</option>
+      <option value="failed">有失败步骤</option>
+      <option value="ready">可继续</option>
+    </select>
+    <label class="sr-only" for="projectSort">排序方式</label>
+    <select class="library-sort" id="projectSort" aria-label="项目排序">
+      <option value="recent">最近活动</option>
+      <option value="title">名称 A–Z</option>
+    </select>
+    <button class="library-clear" id="clearLibraryFilters" type="button" hidden>清除筛选</button>
+    <div class="library-status" id="libraryStatus" role="status" aria-live="polite"></div>
+  </div>
+  <div class="lib-grid" id="grid"></div><button class="library-more" id="libraryMore" type="button" hidden>查看更多作品</button>
+  <div class="hint" id="empty" style="display:none" role="status"></div>
+  <div class="library-error" id="libraryError" role="alert" hidden>
+    <div>项目库暂时无法读取，已有项目不会受到影响。</div>
+    <button id="retryLibrary" type="button">重新加载</button>
+  </div>
+</div>
+
+<script type="module" src="/ui/library.js"></script>
+</body>
+</html>

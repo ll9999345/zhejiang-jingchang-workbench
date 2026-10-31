@@ -1,0 +1,115 @@
+/* Native canvas uses the main workbench's liquid field and glass material.
+ * Geometry, media, input gestures and project actions remain native. */
+:root,.studio[data-theme="dark"] {
+ --bg:#100e20;--panel:#25243fe8;--panel-soft:#282741;--raised:#3b3857;
+ --border:#b1bbeb40;--line:#b1bbeb40;--line-strong:#b7c5f26b;
+ --text:#f2f1ff;--muted:#c4c7e3;--subtle:#adb5d3;
+ --accent:#b9c9ff;--accent-ink:#252345;--accent-soft:#9eafff20;
+ --green:#b9c9ff;--green-dark:#d3ddff;--green-soft:#393358;
+ --jade-glass:#25223c;--jade-glass-translucent:#2d2947ca;
+ --jade-border:#cbd8ff3f;--jade-focus:#b1c5ff44;--jade-ambient:#aa93ff15;
+ --jade-shadow:0 12px 36px -16px #050515ae;--jade-meter:#b9c9ff;
+ --glass-sheen:linear-gradient(137deg,#e9e9ff1c,#c4d6ff07 40%,transparent 72%);
+ --glass-edge-lit:#ecf1ff66;--glass-chrome:#242037ba;--glass-work:#17122520;
+ --glass-node:#2b2947d9;--glass-vignette:#10091c33;
+ color-scheme:dark;
+}
+body[data-unified-canvas] {background:var(--bg);color:var(--text);isolation:isolate;}
+body[data-unified-canvas] .jc-aurora {position:fixed;inset:0;z-index:-1;pointer-events:none;contain:strict;}
+body[data-unified-canvas] .jc-aurora::before {display:none;}
+body[data-unified-canvas] .jc-aurora {background:#0e1022 url('/ui/dream-field-poster.png') center/cover no-repeat;}
+body[data-unified-canvas] .studio-dream-video {position:absolute;inset:0;width:100%;height:100%;object-fit:cover;pointer-events:none;}
+body[data-unified-canvas] .studio-glass-scene {position:fixed;inset:0;width:100%;height:100%;z-index:-1;pointer-events:none;contain:strict;}
+body[data-unified-canvas] .studio-glass-scene[hidden],body[data-unified-canvas] .studio-glass-front[hidden] {display:none;}
+body[data-unified-canvas] .studio-glass-front {position:absolute;inset:-1px;width:calc(100% + 2px);height:calc(100% + 2px);z-index:-1;pointer-events:none;border-radius:inherit;}
+body[data-unified-canvas] :is(.topbar,.rail,.panel,.dock,.canvas-controls,.floating-menu,.left-panel,.right-panel,.canvas-toolbar,dialog) {isolation:isolate;}
+/* Static grid/flex chrome needs its own containing block. Otherwise its
+ * absolute foreground canvas stretches across .app and covers the workspace. */
+body[data-unified-canvas] :is(.app .rail,.app .topbar,.studio .canvas-toolbar) {position:relative;}
+@media(min-width:801px) {body[data-unified-canvas] .app .panel {position:relative;}}
+@media(min-width:761px) {body[data-unified-canvas] :is(.studio .left-panel,.studio .right-panel) {position:relative;}}
+body[data-unified-canvas] :is(.app .surface,.studio .canvas-wrap,.studio .work-area) {background-color:transparent;}
+body[data-unified-canvas] [data-glass-surface="webgl"] {
+ background:transparent!important;border-color:transparent!important;
+ backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
+ box-shadow:0 8px 26px -17px #05051a80;
+}
+body[data-unified-canvas] .app .canvas {background-color:transparent;background-image:radial-gradient(#d2ccff26 .8px,transparent .8px);}
+body[data-unified-canvas] .app .node {box-shadow:0 10px 28px -12px #0b08269e,inset 0 1px 0 #edf0ff19;border-top-color:#d0d7ff80;}
+/* Selection stays in DOM so the glass shader cannot hide editing feedback. */
+body[data-unified-canvas] :is(.app .node.selected,.studio .workflow-node.active-node) {
+ outline:2px solid var(--accent);outline-offset:1px;
+ box-shadow:0 0 0 3px var(--jade-focus),0 10px 28px -12px #0b08269e;
+}
+body[data-unified-canvas] .app .node-body {color:var(--text);}
+body[data-unified-canvas] .app .node-media {background:#101121;}
+body[data-unified-canvas] .app .brand {background:linear-gradient(135deg,#b0bfff,#8070ba);color:#242139;}
+body[data-unified-canvas] .app .edge {stroke:#bbccff;}
+body[data-unified-canvas] :is(button,a,select,input,textarea):focus-visible {outline:2px solid #cedaff;outline-offset:3px;}
+/* Reserve a top navigation row without changing the native toolbar widths. */
+body[data-unified-canvas] :is(.app,.studio) {position:relative;padding-top:44px;box-sizing:border-box;}
+body[data-unified-canvas] .unified-navigation {position:absolute;inset:0 0 auto;z-index:22;height:44px;display:flex;flex-direction:row;align-items:center;gap:6px;padding:5px 12px;background:var(--glass-sheen),var(--glass-chrome);border-bottom:1px solid var(--jade-border);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);}
+body[data-unified-canvas] .unified-navigation a {flex:none;white-space:nowrap;padding:5px 10px;}
+.unified-navigation a {display:flex;align-items:center;justify-content:center;min-height:34px;border-radius:10px;color:var(--text);font-size:12px;text-decoration:none;border:1px solid var(--jade-border);background:var(--glass-sheen),color-mix(in srgb,var(--panel-soft) 55%,transparent);padding:5px;}
+.unified-navigation a:hover {background:var(--raised);}
+body[data-unified-canvas] :is(.unified-navigation,.unified-navigation *) {box-sizing:border-box;}
+body[data-unified-canvas] .rail {overflow-y:auto;scrollbar-width:none;}
+body[data-unified-canvas] .app :is(.project-heading strong,.node-title) {font-weight:400;}
+body[data-unified-canvas] .app :is(.scroll-view,.timeline) {background:transparent;}
+body[data-unified-canvas] .app :is(.timeline-tracks,.player) {border-color:var(--jade-border);}
+body[data-unified-canvas] .app .topbar {border-top:1px solid #ecf1ff30;}
+/* Keep the project caption away from the editable first node without changing
+ * saved node positions, viewport transforms, minimap or pointer targets. */
+body[data-unified-canvas] .studio .canvas-intro {top:auto;bottom:42px;left:18px;max-width:min(480px,calc(100% - 185px));padding:8px 10px;border-radius:10px;background:var(--jade-glass-translucent);border:1px solid var(--jade-border);}
+body[data-unified-canvas] .studio .canvas-intro>span {font-size:8px;letter-spacing:1px;}
+body[data-unified-canvas] .studio .canvas-intro h1 {font-size:14px;margin:4px 0;letter-spacing:0;}
+body[data-unified-canvas] .studio .canvas-intro p {font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+@media(max-width:760px) {body[data-unified-canvas] .studio .canvas-intro {display:none;}}
+/* Keep modal glass in the browser's top layer, using a non-interactive copy of
+ * the same scene. The native dialog, focus trap and form remain in place. */
+body[data-unified-canvas] dialog {background:var(--glass-sheen),var(--jade-glass-translucent);color:var(--text);border-color:var(--jade-border);}
+body[data-unified-canvas] dialog::backdrop {background:#080d235c;}
+body[data-unified-conversation]>header {position:relative;isolation:isolate;height:110px;padding-top:44px;background:var(--glass-sheen),var(--glass-chrome);}
+body[data-unified-conversation]>main {height:calc(100dvh - 110px);background:transparent;}
+body[data-unified-conversation]>main>aside {position:relative;isolation:isolate;background:var(--glass-chrome);}
+body[data-unified-conversation] :is(.connection,#composer) {position:relative;isolation:isolate;background:var(--jade-glass-translucent);}
+body[data-unified-conversation] .bubble {background:var(--glass-node);}
+body[data-unified-conversation] :is(input,select,textarea,button,.notice) {background:var(--panel-soft);color:var(--text);border-color:var(--jade-border);}
+body[data-unified-conversation] .primary {background:var(--accent);color:var(--accent-ink);}
+/* Ordinary feature sheets use the same material without changing their form flow. */
+body[data-unified-function]>header {position:relative;isolation:isolate;height:auto;min-height:112px;padding-top:56px;}
+body[data-unified-function]>main {background:transparent;}
+body[data-unified-function]>main>:is(section,aside),body[data-unified-function]>footer {position:relative;isolation:isolate;background:var(--glass-sheen),var(--jade-glass-translucent);border-color:var(--jade-border);}
+body[data-unified-function] :is(.connection,#model-panel,#file-info,#upload,#status) {background:var(--panel-soft);color:var(--text);border-color:var(--line);}
+body[data-unified-function]>header .ambient-motion-button {margin-left:auto;}
+@media(max-width:800px) {
+ body[data-unified-canvas] .unified-navigation {gap:4px;padding:5px 10px;}
+ .unified-navigation a {min-height:32px;min-width:38px;font-size:11px;padding:4px;}
+ body[data-unified-canvas] .rail {overflow-x:auto;overflow-y:hidden;}
+}
+/* Existing native theme choices remain readable and drive the shared renderer. */
+:root[data-theme="light"],body[data-unified-canvas] .studio[data-theme="light"] {
+ --bg:#eff0f7;--panel:#fafaff;--panel-soft:#eef0f8;--raised:#e4e7f6;
+ --border:#313c6b28;--line:#313c6b28;--line-strong:#344a7950;
+ --text:#242b45;--muted:#4b5572;--subtle:#626c88;
+ --accent:#514996;--accent-ink:#fff;--accent-soft:#7564ca18;
+ --green:#514996;--green-dark:#43387b;--green-soft:#ece8fa;
+ --jade-glass:#f6f7fc;--jade-glass-translucent:#f6f7fcd4;
+ --jade-border:#52639238;--jade-focus:#7669b536;
+ --jade-shadow:0 12px 36px -16px #28366538;
+ --glass-chrome:#f6f6fcd6;--glass-work:transparent;--glass-node:#f7f7fce6;
+ --glass-edge-lit:#fff;--glass-sheen:linear-gradient(137deg,#fff9,transparent 70%);
+ color-scheme:light;
+}
+:root[data-theme="light"] body[data-unified-canvas] .jc-aurora {background-color:#eff0f7;}
+:root[data-theme="light"] body[data-unified-canvas] .jc-aurora:not([data-shared-glass="ready"]) {opacity:.21;}
+@media(prefers-reduced-transparency:reduce),(forced-colors:active) {
+ body[data-unified-canvas] :is(.jc-aurora,.studio-glass-scene,.studio-glass-front) {display:none!important;}
+ body[data-unified-canvas] :is(.topbar,.rail,.panel,.dock,.canvas-controls,.floating-menu,.left-panel,.right-panel,.canvas-toolbar,dialog,.unified-navigation,.node,.workflow-node),body[data-unified-conversation] :is(header,aside,.connection,#composer,.bubble),body[data-unified-function]>header,body[data-unified-function]>main>:is(section,aside),body[data-unified-function]>footer {
+  background:var(--panel)!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
+ }
+}
+/* Utility pages participate in the same material and navigation as the canvas. */
+body[data-unified-canvas] :is(.cc-header,.cli-header,.cc-glass,.cli-glass){position:relative;isolation:isolate;background:var(--glass-sheen),var(--glass-node);border:1px solid var(--glass-edge-lit);border-radius:18px;box-shadow:inset 0 1px 0 #f0f3ff38,0 14px 36px -22px #030411cc}
+body[data-unified-canvas] :is(.cc-header,.cli-header){padding:14px 18px}
+body[data-unified-canvas] :is(.cc-glass,.cli-glass){color:var(--text)}

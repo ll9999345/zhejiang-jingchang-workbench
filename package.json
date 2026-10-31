@@ -1,0 +1,16 @@
+{
+  "name": "zhejiang-jingchang-workbench",
+  "version": "0.1.0",
+  "private": true,
+  "description": "浙江文旅工作台：统一玻璃界面的本地 AI 影视创作工作台",
+  "license": "AGPL-3.0-only",
+  "scripts": {
+    "start": "python3 scripts/start_workbench.py",
+    "check": "python3 scripts/start_workbench.py --check",
+    "setup:canvas": "npm ci --prefix apps/jingchang",
+    "test:canvas": "npm test --prefix apps/jingchang"
+  },
+  "engines": {
+    "node": ">=24"
+  }
+}

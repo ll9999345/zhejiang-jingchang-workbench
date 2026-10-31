@@ -1,0 +1,47 @@
+--- original script[1]
++++ opening.js
+@@ -103,8 +103,10 @@
+       this.root.innerHTML=markup();
+       doc.body.append(this.root);
+       this.skipButton=this.root.querySelector('.zo-skip');
++      this.enterButton=this.root.querySelector('.zo-static-enter');
++      this.focusButton=this.reduced?this.enterButton:this.skipButton;
+       this.skipButton.addEventListener('click',()=>this.finish('skip'),{signal:this.listeners.signal});
+-      this.root.querySelector('.zo-static-enter').addEventListener('click',()=>this.finish('enter'),{signal:this.listeners.signal});
++      this.enterButton.addEventListener('click',()=>this.finish('enter'),{signal:this.listeners.signal});
+       // During opening, background actions must not receive unintentional clicks.
+       this.root.addEventListener('pointerdown',(e)=>{
+         if(e.target.closest('button')) return;
+@@ -112,8 +114,15 @@
+         this.finish('tap');
+       },{signal:this.listeners.signal});
+       doc.addEventListener('keydown',(event)=>{
+-        if(event.key==='Escape'){event.preventDefault();this.finish('escape');}
+-      },{signal:this.listeners.signal});
++        // Each mode has one visible action; keep Tab / Shift+Tab inside the dialog.
++        if(event.key==='Tab'){
++          event.preventDefault();event.stopPropagation();
++          this.focusButton.focus({preventScroll:true});
++        }
++        if(event.key==='Escape'){
++          event.preventDefault();event.stopPropagation();this.finish('escape');
++        }
++      },{signal:this.listeners.signal,capture:true});
+       doc.addEventListener('visibilitychange',()=>{
+         if(doc.hidden) this.finish('hidden');
+       },{signal:this.listeners.signal});
+@@ -135,13 +144,13 @@
+       }
+       this.root.dataset.renderer=this.renderer?.kind||'css-static';
+       this.state=this.reduced?'static':'playing';
+-      this.skipButton.focus({preventScroll:true});
+       if(this.reduced) {
+         this.root.dataset.phase='static';
+       } else {
+         this.started=performance.now();
+         this.raf=requestAnimationFrame(t=>this.tick(t));
+       }
++      this.focusButton.focus({preventScroll:true});
+       doc.dispatchEvent(new CustomEvent('opening:started',{detail:{renderer:this.root.dataset.renderer,reduced:this.reduced}}));
+     }
+     onContextLost() {

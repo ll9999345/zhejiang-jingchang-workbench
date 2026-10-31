@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>自由画布 · 浙江文旅</title>
+  <link rel="icon" href="/ui/favicon.svg">
+  <link rel="stylesheet" href="/ui/studio.css">
+  <link rel="stylesheet" href="/ui/canvas.css">
+  <script defer src="/ui/vendor/motion-12.23.24.js"></script>
+  <script defer src="/ui/studio.js"></script>
+  <script defer src="/ui/canvas.js"></script>
+</head>
+<body data-studio-page="canvas" data-studio-layout="moneyprinter">
+<main class="canvas-workspace">
+  <header class="canvas-toolbar">
+    <div class="canvas-project"><label for="canvasProject">当前作品</label><select id="canvasProject"><option value="">选择作品，可带入已有资料</option></select></div>
+    <span class="canvas-connection" id="canvasConnection" role="status">正在连接画布…</span>
+    <div class="canvas-actions">
+      <button id="canvasStart" type="button" hidden>启动画布</button>
+      <button id="canvasPush" type="button" disabled>带入作品资料</button>
+      <button id="canvasPull" type="button" disabled>取回画布产物</button>
+      <button id="canvasRefresh" type="button">刷新状态</button>
+      <a id="canvasReturn" href="/">返回工作台 ↗</a>
+    </div>
+  </header>
+  <p id="canvasMessage" class="canvas-message" role="status" aria-live="polite">画布与工作台交换本机副本；生成服务由画布内单独设置。</p>
+  <p id="canvasCutSummary" class="canvas-import-note" hidden></p>
+  <section class="canvas-welcome" id="canvasWelcome">
+    <span class="canvas-kicker">CANVAS / 镜场</span><h1>把想法连成作品</h1>
+    <p>整理脚本、连接镜头、复用工作流，再进入分镜与剪辑。你的原作品和原素材会一直保留。</p>
+    <div class="canvas-welcome-actions"><button id="canvasOpen" type="button" disabled>打开此作品的画布</button><a id="canvasStandalone" href="http://127.0.0.1:4768/" target="_blank" rel="noopener" hidden>独立使用画布 ↗</a></div>
+    <small>选择作品后可直接带入资料；也可以独立使用画布，无需关联作品。</small>
+  </section>
+  <iframe id="canvasFrame" title="镜场自由画布、分镜与剪辑" allow="fullscreen" hidden></iframe>
+  <dialog id="canvasExchange" aria-labelledby="canvasExchangeTitle">
+    <form method="dialog" class="canvas-dialog-top"><div><span id="canvasExchangeEyebrow">仅在本机交换</span><h2 id="canvasExchangeTitle">带入作品资料</h2></div><button aria-label="关闭资料选择">×</button></form>
+    <div class="canvas-dialog-body">
+    <p id="canvasExchangeNote"></p>
+    <div class="canvas-source-options" id="canvasSourceOptions"><label><input type="checkbox" id="canvasScript" checked> 脚本</label><label><input type="checkbox" id="canvasScenes" checked> 分镜与连线</label><label><input type="checkbox" id="canvasTimeline" checked> 同时建立剪辑镜头</label></div>
+    <p id="canvasTimelineNote" class="canvas-import-note">按分镜顺序带入时长和旁白；仅匹配你勾选的对应镜头素材。导入后在画布顶部的「分镜」「剪辑」里调整，已有镜头保留原编辑。图片会按时长显示。</p>
+    <ul id="canvasCutWarnings" class="canvas-import-note" hidden></ul>
+    <div class="canvas-selection-tools"><label><input id="canvasSelectAll" type="checkbox"> 选择列表中的全部素材</label><span id="canvasSelectionCount"></span></div>
+    <div id="canvasFiles" class="canvas-file-list"></div>
+    <p class="canvas-dialog-error" id="canvasExchangeError" role="alert" hidden></p>
+    </div>
+    <footer><span id="canvasExchangeScope">本机复制，不提交生成任务</span><button type="button" id="canvasExchangeSubmit">带入选中资料</button></footer>
+  </dialog>
+</main>
+</body></html>

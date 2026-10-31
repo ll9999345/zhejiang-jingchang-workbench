@@ -1,0 +1,887 @@
+/* Zhejiang Studio · darkroom glass design tokens
+ *
+ * 这一层加载在所有页面样式之后，只做视觉重建，不改任何业务接线：
+ * 结构 = 原有 DOM，颜色/层次/质感/动效 = 本文档。
+ * 深色影院感为默认主题，浅色主题与本地选择继续保留。导航、关键工作面和
+ * 浮层使用分层玻璃；任务卡和编辑区保持更实的表面，确保文字与操作清楚。
+ * 暗房表面、柔和光场、细噪点和淡紫高光建立层次，不把整页糊成玻璃。
+ *
+ * 层次模型（层级越高 → 越亮，靠亮度而不是边框分隔）：
+ *   --s-0 窗口底  →  --s-1 内容底  →  --s-2 卡片  →  --s-3 浮层/hover
+ */
+
+:root {
+  /* ─── 深色：暗房 ─────────────────────────────────────────────── */
+  color-scheme: dark;
+
+  --s-0: #0b0b1d;   /* 侧栏 / 暗房边界 */
+  --s-1: #0e1022;   /* 内容区底 */
+  --s-2: #262746;   /* 卡片、面板 */
+  --s-3: #303351;   /* 浮层、输入框 */
+  --glass: color-mix(in srgb, var(--s-2) 49%, transparent);
+  --glass-strong: color-mix(in srgb, var(--s-2) 80%, transparent);
+
+  /* 描边用白色低透明度叠加，比硬编码灰色在深色上更自然 */
+  --edge: rgb(255 255 255 / 8%);
+  --edge-strong: rgb(208 201 255 / 22%);
+  --edge-lit: rgb(231 224 255 / 38%);
+  --edge-shadow: rgb(155 144 229 / 12%);
+  --glass-sheen: linear-gradient(136deg, rgb(224 215 255 / 13%), rgb(183 171 255 / 3%) 36%, transparent 62%);
+  --edge-accent: color-mix(in srgb, var(--accent) 42%, transparent);
+
+  --t-1: #f3f1ff;   /* 主文字 */
+  --t-2: #c4c1dc;   /* 辅助文字 */
+  --t-3: #b0accb;   /* 弱化文字、占位符：仍清楚可读 */
+
+  --accent: #b5acff;         /* 淡紫高光 */
+  --accent-soft: #d8d1ff;
+  --accent-deep: #443b83;
+  --accent-tint: rgb(139 112 255 / 12%);
+  --accent-glow: 0 0 26px rgb(139 112 255 / 12%);
+  --button-primary: #5950b7;
+  --button-primary-hover: #675cc9;
+
+  --gold: #d9b26a;           /* 次级强调：编号、文化标识 */
+  --gold-tint: rgb(217 178 106 / 12%);
+
+  --ok: #8ac6b1;
+  --warn: #e2b567;
+  --warn-bg: rgb(226 181 103 / 12%);
+  --bad: #f2807a;
+  --bad-bg: rgb(242 128 122 / 12%);
+
+  --bg: var(--s-1); --surface: var(--s-2); --surface-2: var(--s-3); --surface-3: var(--s-3);
+  --text: var(--t-1); --text-2: var(--t-2); --text-3: var(--t-3);
+  --border: var(--edge); --border-soft: var(--edge);
+  --ink: var(--t-1); --muted: var(--t-2); --line: var(--edge); --paper: var(--s-1); --panel: var(--s-2);
+  --green: var(--accent); --green-dark: var(--accent-soft); --green-dim: var(--accent-tint);
+  --danger: var(--bad); --red: var(--bad); --red-dim: var(--bad-bg);
+  --jade: var(--accent-tint); --jade-soft: var(--accent-tint);
+
+  --studio-bg: var(--s-1); --studio-panel: var(--s-2); --studio-soft: var(--s-3);
+  --studio-sidebar: var(--s-0); --studio-text: var(--t-1); --studio-muted: var(--t-2);
+  --studio-line: var(--edge); --studio-accent: var(--accent); --studio-tint: var(--accent-tint);
+  --studio-warning: var(--warn); --studio-warning-bg: var(--warn-bg);
+  --studio-danger: var(--bad); --studio-danger-bg: var(--bad-bg);
+  --studio-shadow: var(--lift-2);
+
+  --cream: var(--s-2); --cream-shade: var(--s-3); --cream-ink: var(--t-1); --cream-ink-2: var(--t-2);
+  --media-bg: #090d10;
+
+  /* ─── 层次：深色下靠"上缘内高光 + 环境影"制造体积 ─────────────── */
+  --lift-0: none;
+  --lift-1: 0 0 0 1px rgb(255 255 255 / 5%), inset 0 1px 0 rgb(255 255 255 / 5%), 0 2px 8px rgb(0 0 0 / 28%);
+  --lift-2: inset 0 1px 0 rgb(235 228 255 / 14%), inset 0 -1px 0 rgb(11 10 37 / 30%), 0 12px 38px -18px rgb(4 2 21 / 72%);
+  --lift-3: 0 0 0 1px rgb(255 255 255 / 8%), inset 0 1px 0 rgb(255 255 255 / 7%), 0 16px 36px -16px rgb(0 0 0 / 58%);
+  --lift-4: inset 0 1px 0 rgb(239 232 255 / 24%), 0 30px 90px -20px rgb(4 1 24 / 80%), 0 0 50px -25px rgb(139 108 255 / 20%);
+  --bevel: inset 0 1px 0 rgb(255 255 255 / 7%);
+  --ring: 0 0 0 3px color-mix(in srgb, var(--accent) 28%, transparent), 0 0 24px rgb(139 112 255 / 12%);
+
+  /* ─── 圆角阶梯 ──────────────────────────────────────────────── */
+  --r-1: 10px; --r-2: 16px; --r-3: 20px; --r-4: 22px; --r-5: 24px;
+
+  /* ─── 字体 ──────────────────────────────────────────────────── */
+  --sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
+/* 品牌标记沿用本机宋体；操作界面文字统一使用系统无衬线。 */
+  --display: "Songti SC", "STSong", Georgia, serif;
+
+  /* ─── 动效：可中断弹簧 + 克制的时长 ───────────────────────────── */
+  --d-instant: 90ms;
+  --d-fast: 140ms;
+  --d-base: 180ms;
+  --d-slow: 220ms;
+  --e-out: cubic-bezier(.22, 1, .36, 1);      /* 进场：快出慢停 */
+  --e-in: cubic-bezier(.4, 0, 1, 1);          /* 退场：加速离开 */
+  --e-spring: cubic-bezier(.2, .8, .2, 1); /* 轻落点，不做夸张过冲 */
+
+  --grain-opacity: .08;
+  --bg-vignette: radial-gradient(ellipse at center, transparent 35%, rgb(0 0 0 / 22%) 100%);
+  --fs-scale: 1;
+}
+
+/* ─── 浅色：日光棚（保留原纸白体系，但补上层次与质感）───────────── */
+:root[data-theme="light"] {
+  color-scheme: light;
+
+  --s-0: #eae7f6;
+  --s-1: #f5f3fb;
+  --s-2: #ffffff;
+  --s-3: #f9f7ff;
+  --glass: color-mix(in srgb, white 84%, transparent);
+  --glass-strong: color-mix(in srgb, white 93%, transparent);
+
+  --edge: rgb(39 32 65 / 10%);
+  --edge-strong: rgb(39 32 65 / 18%);
+  --edge-lit: rgb(255 255 255 / 92%);
+  --edge-shadow: rgb(108 92 154 / 15%);
+  --glass-sheen: linear-gradient(136deg, rgb(255 255 255 / 65%), transparent 65%);
+
+  --t-1: #29243f;
+  --t-2: #625878;
+  --t-3: #6a607e;
+
+  --accent: #5947ad;
+  --accent-soft: #4c3b96;
+  --accent-deep: #40317f;
+  --accent-tint: rgb(96 74 180 / 9%);
+  --accent-glow: 0 10px 28px rgb(96 74 180 / 10%);
+  --button-primary: #5950b7;
+  --button-primary-hover: #675cc9;
+
+  --gold: #9a7434;
+  --gold-tint: rgb(154 116 52 / 10%);
+
+  --warn: #8a6414; --warn-bg: #faf3df;
+  --bad: #a63f3a;  --bad-bg: #fae9e7;
+
+  --lift-1: 0 1px 2px rgb(39 32 65 / 6%);
+  --lift-2: 0 1px 2px rgb(39 32 65 / 6%), 0 4px 14px -6px rgb(39 32 65 / 14%);
+  --lift-3: 0 2px 4px rgb(39 32 65 / 6%), 0 14px 34px -12px rgb(39 32 65 / 22%);
+  --lift-4: 0 4px 10px rgb(39 32 65 / 8%), 0 30px 64px -18px rgb(39 32 65 / 30%);
+  --bevel: inset 0 1px 0 rgb(255 255 255 / 82%);
+
+  --grain-opacity: .045;
+  --bg-vignette: radial-gradient(ellipse at center, transparent 38%, rgb(38 28 75 / 8%) 100%);
+}
+
+/* 旧页面的主题别名也有 :root[data-theme] 优先级；桥接必须同级，
+ * 否则切换浅色会重新带出旧黄纸/橙色，深色也会混入旧灰紫令牌。 */
+:root, :root[data-theme="dark"], :root[data-theme="light"] {
+  --bg: var(--s-1); --surface: var(--s-2); --surface-2: var(--s-3); --surface-3: var(--s-3);
+  --text: var(--t-1); --text-2: var(--t-2); --text-3: var(--t-3);
+  --border: var(--edge); --border-soft: var(--edge);
+  --ink: var(--t-1); --muted: var(--t-2); --line: var(--edge); --paper: var(--s-1); --panel: var(--s-2);
+  --green: var(--accent); --green-dark: var(--accent-soft); --green-dim: var(--accent-tint);
+  --amber: var(--gold); --amber-dim: var(--gold-tint);
+  --danger: var(--bad); --red: var(--bad); --red-dim: var(--bad-bg);
+  --jade: var(--accent-tint); --jade-soft: var(--accent-tint);
+  --studio-bg: var(--s-1); --studio-panel: var(--s-2); --studio-soft: var(--s-3);
+  --studio-sidebar: var(--s-0); --studio-text: var(--t-1); --studio-muted: var(--t-2);
+  --studio-line: var(--edge); --studio-accent: var(--accent); --studio-tint: var(--accent-tint);
+  --studio-warning: var(--warn); --studio-warning-bg: var(--warn-bg);
+  --studio-danger: var(--bad); --studio-danger-bg: var(--bad-bg); --studio-shadow: var(--lift-2);
+  --cream: var(--s-2); --cream-shade: var(--s-3); --cream-ink: var(--t-1); --cream-ink-2: var(--t-2);
+  --script-shadow: var(--lift-3); --scroll-thumb: var(--edge-strong); --scroll-thumb-hover: var(--t-3);
+  --badge-bg: color-mix(in srgb, var(--s-0) 82%, transparent);
+  --modal-backdrop: rgb(4 8 10 / 62%);
+}
+
+/* ─── 基底 ──────────────────────────────────────────────────────── */
+html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+
+body[data-studio-page] {
+  background-color: var(--s-1);
+  isolation: isolate;
+  background-image: none;
+  color: var(--t-1);
+  font: 14px/1.6 var(--sans);
+  font-feature-settings: "tnum" 1, "cv05" 1;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -.005em;
+}
+
+/* The texture stays inside the background layers; it never covers controls. */
+body[data-studio-page]::before, body[data-studio-page]::after { content: none; }
+
+:root[data-theme="light"] body[data-studio-page] { background-image: none; }
+
+::selection { background: var(--accent-tint); color: var(--t-1); }
+
+/* Reference 10 blue-violet palette. These two painted fields are the fallback;
+ * the native player below supplies the locally authored deforming light field. */
+.studio-aurora { position: fixed; inset: 0; z-index: -1; pointer-events: none; overflow: hidden; contain: strict; }
+.studio-aurora::before, .studio-aurora::after {
+  content: ""; position: absolute; inset: -18%; transform-origin: 50% 50%; will-change: transform, opacity;
+}
+.studio-aurora::before {
+  background:
+    radial-gradient(ellipse 37% 43% at 68% 20%, rgb(137 83 255 / 62%), transparent 78%),
+    radial-gradient(ellipse 43% 47% at 25% 77%, rgb(48 91 244 / 57%), transparent 77%),
+    radial-gradient(ellipse 45% 60% at 90% 92%, rgb(61 83 208 / 24%), transparent 78%);
+  animation: zs-aurora-drift 18s cubic-bezier(.45,0,.55,1) -5s infinite alternate;
+}
+.studio-aurora::after {
+  background:
+    radial-gradient(ellipse 24% 31% at 53% 33%, rgb(199 173 255 / 19%), transparent 78%),
+    radial-gradient(ellipse 32% 34% at 87% 62%, rgb(36 142 255 / 31%), transparent 80%);
+  animation: zs-aurora-caustic 26s cubic-bezier(.45,0,.55,1) -13s infinite alternate;
+}
+@keyframes zs-aurora-drift {
+  from { transform: translate3d(-7%, -7%, 0) scale(1.02) rotate(-5deg); opacity: .76; }
+  to { transform: translate3d(7%, 7%, 0) scale(1.14) rotate(6deg); opacity: 1; }
+}
+@keyframes zs-aurora-caustic {
+  from { transform: translate3d(9%, -5%, 0) scale(1.02); opacity: .65; }
+  to { transform: translate3d(-9%, 7%, 0) scale(1.14) rotate(-8deg); opacity: 1; }
+}
+body[data-ambient-motion="paused"] .studio-aurora::before,
+body[data-ambient-motion="paused"] .studio-aurora::after { animation-play-state: paused; }
+:root[data-theme="light"] .studio-aurora { opacity: .32; }
+body[data-studio-page] .studio-motion { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.studio-motion-label { font-size: 11px; font-weight: 500; }
+body[data-studio-page] .studio-motion[aria-pressed="true"] { color: var(--accent); background: var(--accent-tint); }
+body[data-studio-page] :is(.task-card, .status-panel, .heartbeat) {
+  background: var(--glass-sheen), var(--glass-strong); border-color: var(--edge-strong);
+  border-top-color: var(--edge-lit); box-shadow: var(--lift-2);
+}
+body[data-studio-page] :is(video, .video-preview) { background-color: var(--media-bg); }
+body[data-studio-page] dialog {
+  color: var(--t-1); background: var(--glass-sheen), var(--glass-strong);
+  border: 1px solid var(--edge-strong); border-top-color: var(--edge-lit);
+  box-shadow: var(--lift-4); backdrop-filter: blur(16px) saturate(135%); -webkit-backdrop-filter: blur(16px) saturate(135%);
+}
+body[data-studio-page] dialog::backdrop { background: rgb(2 10 22 / 56%); backdrop-filter: none; -webkit-backdrop-filter: none; }
+@media (prefers-reduced-motion: reduce) {
+  .studio-aurora::before, .studio-aurora::after { animation: none; will-change: auto; }
+}
+@media (prefers-reduced-transparency: reduce), (forced-colors: active) {
+  .studio-aurora { display: none; }
+  body[data-studio-page] dialog { background: var(--s-3); backdrop-filter: none; -webkit-backdrop-filter: none; }
+}
+
+/* 滚动条跟随主题，深色下不再是一条亮白 */
+body[data-studio-page] * { scrollbar-color: var(--edge-strong) transparent; scrollbar-width: thin; }
+body[data-studio-page] ::-webkit-scrollbar { width: 11px; height: 11px; }
+body[data-studio-page] ::-webkit-scrollbar-track { background: transparent; }
+body[data-studio-page] ::-webkit-scrollbar-thumb {
+  border: 3px solid transparent;
+  border-radius: 99px;
+  background: var(--edge-strong);
+  background-clip: content-box;
+}
+body[data-studio-page] ::-webkit-scrollbar-thumb:hover { background: color-mix(in srgb, var(--t-3) 70%, transparent); background-clip: content-box; }
+
+/* ─── 标题：宋体做文化识别，字重与字距收紧 ─────────────────────── */
+body[data-studio-page] :is(h1, h2, h3) {
+  font-family: var(--sans);
+  font-weight: 600;
+  letter-spacing: -.01em;
+  text-wrap: balance;
+  color: var(--t-1);
+}
+body[data-studio-page] h1 { font-size: 30px; line-height: 1.3; }
+body[data-studio-page] h2 { font-size: 21px; line-height: 1.4; }
+body[data-studio-page] h3 { font-size: 17px; line-height: 1.45; }
+body[data-studio-page] h4 { font-family: var(--sans); font-weight: 600; letter-spacing: -.01em; }
+
+/* 小标签：等宽大写，制造"仪器面板"的精密感 */
+body[data-studio-page] .eyebrow {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--t-3);
+}
+
+/* ─── 侧栏 ──────────────────────────────────────────────────────── */
+.studio-ready .studio-sidebar {
+  background: linear-gradient(160deg, rgb(225 211 255 / 8%), transparent 48%), color-mix(in srgb, var(--s-0) 28%, transparent);
+  border-right: 1px solid var(--edge);
+  box-shadow: inset -1px 0 0 rgb(227 215 255 / var(--dream-rim,.31)), inset -3px 0 8px rgb(150 144 235 / 8%), 12px 0 34px -24px rgb(4 2 20 / 32%);
+  /* Desktop has only the already softened field behind it. Reuse that plane. */
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+@media (max-width: 800px) {
+  /* The drawer overlaps real page content, so it still needs local frosting. */
+  .studio-ready .studio-sidebar { backdrop-filter: blur(12px) saturate(125%); -webkit-backdrop-filter: blur(12px) saturate(125%); }
+}
+
+.studio-brand { color: var(--t-1); font-weight: 600; }
+.studio-monogram {
+  background: linear-gradient(145deg, #9a83f3, #5148ac 75%);
+  color: #fff;
+  border-radius: var(--r-1);
+  box-shadow: inset 0 1px 0 #eee4ff66, 0 4px 16px #110b3055;
+  font-size: 22px;
+}
+.studio-brand small { color: var(--t-3); letter-spacing: .12em; }
+
+.studio-sidebar :is(nav > a, .studio-context-link) {
+  border-radius: var(--r-1);
+  color: var(--t-2);
+  font-weight: 500;
+  transition: background-color var(--d-fast) var(--e-out), color var(--d-fast) var(--e-out);
+}
+.studio-sidebar :is(nav > a, .studio-context-link):hover { background: rgb(255 255 255 / 4%); color: var(--t-1); }
+:root[data-theme="light"] .studio-sidebar :is(nav > a, .studio-context-link):hover { background: rgb(39 32 65 / 5%); }
+
+.studio-sidebar nav > a[aria-current] {
+  background: color-mix(in srgb, var(--s-2) 43%, transparent);
+  color: var(--t-1);
+  font-weight: 600;
+  box-shadow: var(--bevel), var(--lift-1);
+}
+
+.studio-nav-label { color: var(--t-3); font-family: var(--mono); letter-spacing: .14em; }
+
+/* 制作流程：激活项由弹簧滑块承载 */
+.studio-sidebar .workspace-nav button { border-radius: var(--r-1); color: var(--t-2); }
+.studio-sidebar .workspace-nav button span {
+  background: var(--s-2);
+  color: var(--t-3);
+  border-radius: 6px;
+  box-shadow: var(--bevel);
+  font-family: var(--mono);
+  transition: background-color var(--d-fast) var(--e-out), color var(--d-fast) var(--e-out);
+}
+.studio-sidebar .workspace-nav button[aria-current="step"] { color: var(--accent-soft); }
+.studio-sidebar .workspace-nav button[aria-current="step"] span {
+  background: var(--accent-deep);
+  color: #fff;
+  box-shadow: none;
+}
+.studio-stage-indicator {
+  background: var(--accent-tint);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 16%, transparent);
+  transition: transform var(--d-base) var(--e-out);
+}
+.studio-sidebar-footer { color: var(--t-3); }
+.studio-local-dot { box-shadow: 0 0 0 3px var(--accent-tint); }
+
+/* ─── 顶栏 ──────────────────────────────────────────────────────── */
+.studio-topbar {
+  background: linear-gradient(115deg, rgb(201 181 255 / 5%), transparent 62%), color-mix(in srgb, var(--s-1) 42%, transparent);
+  border-bottom: 1px solid var(--edge);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 3%);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+.studio-breadcrumb { color: var(--t-3); font-size: 12px; }
+.studio-breadcrumb b { color: var(--t-1); font-weight: 600; }
+body[data-studio-page] .studio-search-trigger {
+  border: 1px solid var(--edge);
+  border-radius: var(--r-1);
+  background: var(--s-2);
+  color: var(--t-3);
+  box-shadow: var(--bevel);
+  transition: border-color var(--d-fast) var(--e-out), color var(--d-fast) var(--e-out);
+}
+body[data-studio-page] .studio-search-trigger:hover { border-color: var(--edge-strong); color: var(--t-2); }
+.studio-search-trigger kbd {
+  padding: 2px 5px;
+  border: 1px solid var(--edge);
+  border-radius: 5px;
+  background: var(--s-1);
+  font-family: var(--mono);
+  font-size: 10px;
+}
+body[data-studio-page] .studio-icon-button { color: var(--t-2); border-radius: var(--r-1); }
+body[data-studio-page] .studio-icon-button:hover { color: var(--t-1); background: rgb(255 255 255 / 5%); }
+:root[data-theme="light"] body[data-studio-page] .studio-icon-button:hover { background: rgb(39 32 65 / 5%); }
+
+/* ─── 面板 / 卡片：玻璃集中在主面板，任务卡片保持实底易读 ──────── */
+body[data-studio-page] :is(.panel, .media-card, .entry-context, .workspace-diagnostics, .workflow-panel,
+  .media-pipeline, .storyboard-card, .lib-card-shell, .shot-card, .job-card, .asset-card, .status-panel,
+  .proposal-card, .storyboard-image-card, .settings-panel, .page-message, .tool-catalog-panel,
+  .screenplay, .script-paper, .quality-stage-section, .video-preview, .storyboard-image-gate,
+  .media-music-card, .production-steps, .quality-workflow) {
+  border: 1px solid var(--edge-strong);
+  border-radius: var(--r-2);
+  background:
+    var(--glass-sheen),
+    var(--glass-strong);
+  box-shadow: var(--lift-1);
+  backdrop-filter: none;
+}
+
+body[data-studio-page] :is(.panel, .entry-context, .workspace-diagnostics, .workflow-panel,
+  .media-pipeline, .settings-panel, .quality-stage-section, .quality-workflow, .screenplay, .script-paper) {
+  background:
+    var(--glass-sheen),
+    var(--glass);
+  box-shadow: var(--bevel), var(--lift-2);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+/* 新建页曾被工作台重排样式压成一片透明底；恢复一个完整、可辨识的主工作面。 */
+body[data-studio-page="entry"] .entry-card {
+  padding: 32px;
+  border: 1px solid var(--edge-strong);
+  border-radius: var(--r-5);
+  background:
+    var(--glass-sheen),
+    var(--glass);
+  box-shadow: var(--bevel), var(--lift-3);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+body[data-studio-page="entry"] .entry-card :is(.entry-header, .entry-steps) { border-color: var(--edge); }
+body[data-studio-page="entry"] .entry-header { gap: 20px; }
+body[data-studio-page="entry"] .entry-header h1 { max-width: 600px; }
+body[data-studio-page="entry"] .safe-mark { flex: none; }
+body[data-studio-page="entry"] #entryForm {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+body[data-studio-page="entry"] .mode-grid { margin-bottom: 26px; }
+@media (max-width: 800px) {
+  body[data-studio-page="entry"] .entry-card { padding: 22px 20px; }
+  body[data-studio-page="entry"] .entry-header { flex-direction: column; gap: 12px; margin-bottom: 24px; }
+  body[data-studio-page="entry"] .entry-header h1 { font-size: 27px; }
+  body[data-studio-page="entry"] #entryForm { padding: 0; }
+}
+body[data-studio-page="entry"] .entry-step.active span {
+  border-color: var(--accent);
+  background: var(--accent-deep);
+  box-shadow: 0 0 0 4px var(--accent-tint), 0 0 18px rgb(139 112 255 / 14%);
+}
+
+/* 嵌套在卡片里的次级块：降一级，用凹陷底而不是再画一层边框 */
+body[data-studio-page="model"] :is(.storyboard-card, .proposal-card, .shot-card, .job-card, .asset-card,
+  .quality-video-summary, .quality-video-estimate, .tool-catalog-tool, .speed-progress-steps li) {
+  background: color-mix(in srgb, var(--s-1) 94%, var(--accent) 6%);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 3%), var(--lift-1);
+  border-color: var(--edge);
+}
+
+/* media-pipeline 是布局容器；玻璃放在真正的工作面，避免边框套边框。 */
+body[data-studio-page="model"] .media-pipeline {
+  border: 0;
+  background: none;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+body[data-studio-page="model"] .media-project-row { margin-bottom: 20px; padding: 14px 16px; }
+body[data-studio-page="model"] .workspace-diagnostics { box-shadow: var(--bevel); }
+
+/* 制作记录的旧浅色皮肤有更高选择器权重，在此统一几何与色彩。 */
+:root[data-theme] body[data-studio-page="board"] .slate { margin: 0; padding: 0 0 22px; border-bottom: 1px solid var(--edge); }
+:root[data-theme] body[data-studio-page="board"] .slate h1 { color: var(--t-1); font-size: 25px; letter-spacing: -.01em; text-shadow: none; }
+:root[data-theme] body[data-studio-page="board"] .backlot-back-link { color: var(--t-2); }
+:root[data-theme] body[data-studio-page="board"] .chip { color: var(--t-2); background: var(--s-3); border-color: var(--edge); box-shadow: none; }
+:root[data-theme] body[data-studio-page="board"] .rail { margin: 22px 0; padding: 14px 0 20px; background: none; border: 0; box-shadow: none; }
+:root[data-theme] body[data-studio-page="board"] :is(.panel, .drawer, .replay-bar) { background: var(--glass); border-color: var(--edge); box-shadow: var(--bevel), var(--lift-2); }
+:root[data-theme] body[data-studio-page="board"] :is(.panel-head, .drawer-head) { background: var(--glass-strong); }
+:root[data-theme] body[data-studio-page="board"] :is(.panel-head h2, .section-title, .stage .name) { color: var(--t-1); }
+:root[data-theme] body[data-studio-page="board"] .stage .sub { color: var(--t-3); }
+:root[data-theme] body[data-studio-page="board"] .stage .node { width: 28px; height: 28px; background: var(--s-3); border: 1px solid var(--edge-strong); color: var(--t-2); box-shadow: var(--bevel); }
+:root[data-theme] body[data-studio-page="board"] .stage .line { top: 14px; left: calc(-50% + 14px); right: calc(50% + 14px); border: 0; background: var(--edge-strong); }
+:root[data-theme] body[data-studio-page="board"] .stage.done .node { color: var(--accent); border-color: var(--edge-accent); background: var(--accent-tint); }
+:root[data-theme] body[data-studio-page="board"] :is(.stage.active, .stage.await) .node { color: var(--gold); border-color: var(--gold); background: var(--gold-tint); }
+:root[data-theme] body[data-studio-page="board"] :is(.stage.active, .stage.await) :is(.name, .sub) { color: var(--gold); }
+:root[data-theme] body[data-studio-page="board"] .stage:hover { background: var(--accent-tint); }
+:root[data-theme] body[data-studio-page="board"] :is(.replay-bar .rp-btn, .replay-bar .rp-btn:hover) { color: var(--t-1); background: var(--s-3); border-color: var(--edge-strong); box-shadow: var(--bevel); }
+:root[data-theme] body[data-studio-page="board"] .script-card { background: var(--glass); color: var(--t-1); border-color: var(--edge); box-shadow: var(--lift-2); }
+:root[data-theme] body[data-studio-page="board"] .script-card::after { background: var(--edge); }
+:root[data-theme] body[data-studio-page="board"] .script-preview::before { background: linear-gradient(to bottom, transparent, var(--s-2) 64%); }
+:root[data-theme] body[data-studio-page="board"] :is(.filmstrip, .drawer pre) { background: var(--s-1); border-color: var(--edge); }
+:root[data-theme] body[data-studio-page="board"] :is(.scene-card .sc-slate, .empty .big, .thumb.spec .spec-shot) { color: var(--t-2); }
+:root[data-theme] body[data-studio-page="board"] .scene-card .sc-slate .num { color: var(--t-1); }
+:root[data-theme] body[data-studio-page="board"] .thumb { border-color: var(--edge); box-shadow: var(--lift-1); }
+:root[data-theme] body[data-studio-page="board"] .wave i { background: var(--edge-strong); }
+:root[data-theme] body[data-studio-page="board"] .wave.played i { background: var(--accent); }
+:root[data-theme] body[data-studio-page="board"] :is(.decision, .act-row) { border-color: var(--edge); }
+:root[data-theme] body[data-studio-page="board"] .decision .d-cat { color: var(--gold); }
+:root[data-theme] body[data-studio-page="board"] .decision .d-pick { color: var(--t-1); }
+
+body[data-studio-page] :is(.lib-card-shell, .shot-card, .job-card, .asset-card, .storyboard-card, .proposal-card) {
+  transition: border-color var(--d-fast) var(--e-out), background-color var(--d-fast) var(--e-out);
+}
+@media (hover: hover) and (pointer: fine) {
+  body[data-studio-page] :is(.lib-card-shell, .shot-card, .job-card, .asset-card, .storyboard-card, .proposal-card):hover {
+    border-color: var(--edge-strong);
+    box-shadow: var(--bevel), var(--lift-2);
+    transform: translateY(-1px);
+  }
+}
+
+/* 选中态以冰蓝内缘与柔光提示，不改变卡片文本对比度。 */
+body[data-studio-page] :is(.proposal-card, .candidate-card).selected,
+body[data-studio-page] .candidate-card.selected {
+  border-color: var(--edge-accent);
+  background:
+    linear-gradient(145deg, color-mix(in srgb, var(--accent) 9%, transparent), transparent 58%),
+    var(--s-2);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 18%, transparent), var(--accent-glow), var(--lift-2);
+}
+
+/* ─── 按钮 ──────────────────────────────────────────────────────── */
+body[data-studio-page] :is(button, .primary-button, .ghost-button, .back-link, .project-link) {
+  border-radius: var(--r-1);
+  font-weight: 550;
+  letter-spacing: -.005em;
+  transition: background-color var(--d-fast) var(--e-out), border-color var(--d-fast) var(--e-out),
+              color var(--d-fast) var(--e-out), box-shadow var(--d-fast) var(--e-out),
+              transform var(--d-instant) var(--e-out);
+}
+
+/* 主按钮：窄幅渐变与上缘高光，像有实体深度的控制面。 */
+body[data-studio-page] :is(.primary, .primary-button, .new-project-entry, .primary-action) {
+  background: linear-gradient(180deg, rgb(255 255 255 / 10%), rgb(0 0 0 / 8%)), var(--button-primary);
+  color: #fff;
+  border: 1px solid transparent;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 16%), 0 4px 14px -8px rgb(0 0 0 / 55%);
+}
+body[data-studio-page] :is(.primary, .primary-button, .new-project-entry, .primary-action):hover:not(:disabled) {
+  background: linear-gradient(180deg, rgb(255 255 255 / 13%), rgb(0 0 0 / 5%)), var(--button-primary-hover);
+  filter: brightness(1.04);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 19%), 0 7px 18px -9px rgb(0 0 0 / 62%);
+}
+
+body[data-studio-page] :is(.secondary, .ghost-button, .quiet-button, .text-button) {
+  background: var(--s-3);
+  color: var(--t-1);
+  border: 1px solid var(--edge);
+  box-shadow: var(--bevel), var(--lift-1);
+}
+body[data-studio-page] :is(.secondary, .ghost-button, .quiet-button, .text-button):hover:not(:disabled) {
+  border-color: var(--edge-strong);
+  background: color-mix(in srgb, var(--s-3) 82%, var(--t-1));
+}
+
+/* 按下时立即给轻微实体反馈；松开后不排队等待弹簧动画。 */
+body[data-studio-page] button:active:not(:disabled):not([data-studio-press]) {
+  transform: scale(.985);
+  transition-duration: var(--d-instant);
+}
+
+body[data-studio-page] :is(button, a, input, textarea, select, summary):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: var(--r-1);
+}
+
+/* ─── 表单控件 ──────────────────────────────────────────────────── */
+body[data-studio-page] :is(input, select, textarea) {
+  border: 1px solid var(--edge);
+  border-radius: var(--r-1);
+  background: var(--s-3);
+  color: var(--t-1);
+  box-shadow: inset 0 1px 2px rgb(0 0 0 / 18%);
+  transition: border-color var(--d-fast) var(--e-out), box-shadow var(--d-fast) var(--e-out), background-color var(--d-fast) var(--e-out);
+}
+:root[data-theme="light"] body[data-studio-page] :is(input, select, textarea) {
+  background: #fff;
+  box-shadow: inset 0 1px 2px rgb(39 32 65 / 5%);
+}
+body[data-studio-page] :is(input, select, textarea):hover:not(:disabled) { border-color: var(--edge-strong); }
+body[data-studio-page] :is(input, textarea)::placeholder { color: var(--t-3); }
+body[data-studio-page] :is(input, select, textarea):focus {
+  border-color: var(--accent);
+  background: var(--s-3);
+  box-shadow: var(--ring);
+  outline: none;
+}
+body[data-studio-page] textarea { line-height: 1.72; }
+
+body[data-studio-page] label { color: var(--t-2); font-weight: 550; }
+body[data-studio-page] .media-hint,
+body[data-studio-page] :is(.mode-hint, .microcopy, .library-intro, .lede, .workflow-note) { color: var(--t-2); }
+
+body[data-studio-page] input[type="checkbox"] { accent-color: var(--accent); }
+
+/* ─── 徽章 / 状态 ───────────────────────────────────────────────── */
+body[data-studio-page] :is(.safe-badge, .workflow-badge, .media-tag, .media-local-badge, .entry-mode-pill,
+  .status, .stock-progress, .chip, .badge) {
+  border-radius: 99px;
+  font-weight: 600;
+  letter-spacing: .01em;
+  border: 1px solid transparent;
+}
+body[data-studio-page] :is(.safe-badge, .media-tag, .media-local-badge, .entry-mode-pill, .workflow-badge) {
+  background: var(--accent-tint);
+  color: var(--accent-soft);
+  border-color: color-mix(in srgb, var(--accent) 24%, transparent);
+}
+:root[data-theme="light"] body[data-studio-page] :is(.safe-badge, .media-tag, .media-local-badge, .entry-mode-pill, .workflow-badge) {
+  color: var(--accent-deep);
+}
+
+body[data-studio-page] .status.ok, body[data-studio-page] .workflow-badge.ok {
+  background: var(--accent-tint); color: var(--accent-soft);
+  border-color: color-mix(in srgb, var(--accent) 24%, transparent);
+}
+body[data-studio-page] :is(.status.warn, .media-inline-status.warn) { background: var(--warn-bg); color: var(--warn); border-color: color-mix(in srgb, var(--warn) 26%, transparent); }
+body[data-studio-page] :is(.status.error, .media-inline-status.error) { background: var(--bad-bg); color: var(--bad); border-color: color-mix(in srgb, var(--bad) 26%, transparent); }
+
+body[data-studio-page] :is(.status-message, .raw, .speed-progress-panel, .entry-source-preview,
+  .media-load-status, .media-inline-status, .workflow-project-row, .stock-shortcut, .fact-gate,
+  .media-project-row, .transcription-details, .media-note) {
+  background: var(--s-1);
+  color: var(--t-2);
+  border-color: var(--edge);
+  border-radius: var(--r-2);
+}
+body[data-studio-page] :is(.raw, .entry-source-preview) { font-family: var(--mono); font-size: 11px; line-height: 1.6; }
+
+/* ─── 流程步骤条 ────────────────────────────────────────────────── */
+body[data-studio-page] :is(.workflow-step, .production-step) {
+  border-radius: 99px;
+  background: var(--s-1);
+  color: var(--t-3);
+  border: 1px solid var(--edge);
+}
+body[data-studio-page] :is(.workflow-step, .production-step).active {
+  background: var(--accent-deep);
+  color: #fff;
+  border-color: transparent;
+}
+body[data-studio-page] :is(.workflow-step, .production-step).done { background: var(--accent-tint); color: var(--accent-soft); border-color: color-mix(in srgb, var(--accent) 20%, transparent); }
+
+body[data-studio-page] .heartbeat { background: var(--s-1); border: 1px solid var(--edge); border-radius: var(--r-2); }
+body[data-studio-page] .heartbeat-track { background: var(--s-3); }
+body[data-studio-page] .heartbeat-track i { background: var(--accent); box-shadow: none; }
+
+/* ─── 命令面板 ──────────────────────────────────────────────────── */
+body[data-studio-page] .studio-command {
+  border: 1px solid var(--edge-strong); border-top-color: var(--edge-lit);
+  border-radius: var(--r-3);
+  background: var(--glass-sheen), color-mix(in srgb, var(--s-3) 69%, transparent);
+  box-shadow: var(--lift-4);
+  backdrop-filter: blur(16px) saturate(135%);
+  -webkit-backdrop-filter: blur(16px) saturate(135%);
+}
+.studio-command::backdrop { background: rgb(4 8 10 / 62%); backdrop-filter: none; -webkit-backdrop-filter: none; }
+.studio-command-row { border-radius: var(--r-1); }
+.studio-command-row[aria-selected="true"] {
+  background: var(--accent-tint);
+  color: var(--accent-soft);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 24%, transparent);
+}
+
+/* ─── 入场动效：内容轻移入，列表错峰出现；不让操作等待动画 ─────── */
+@media (prefers-reduced-motion: no-preference) {
+  body[data-studio-page] > :is(main, .wrap) { animation: zs-arrive 220ms var(--e-out) backwards; }
+
+  body[data-studio-page] .lib-grid > .lib-card-shell,
+  body[data-studio-page] .candidate-grid > .candidate-card,
+  body[data-studio-page] .storyboard-grid > .storyboard-card,
+  body[data-studio-page] .media-grid > .media-card {
+    /* backwards keeps the entry pose during delay without owning hover after */
+    animation: zs-card-arrive 340ms var(--e-out) backwards;
+    animation-delay: calc(var(--card-index, 0) * 28ms);
+  }
+  body[data-studio-page] .lib-grid > .lib-card-shell:nth-child(1),
+  body[data-studio-page] .candidate-grid > .candidate-card:nth-child(1),
+  body[data-studio-page] .storyboard-grid > .storyboard-card:nth-child(1),
+  body[data-studio-page] .media-grid > .media-card:nth-child(1) { --card-index: 0; }
+  body[data-studio-page] .lib-grid > .lib-card-shell:nth-child(2),
+  body[data-studio-page] .candidate-grid > .candidate-card:nth-child(2),
+  body[data-studio-page] .storyboard-grid > .storyboard-card:nth-child(2),
+  body[data-studio-page] .media-grid > .media-card:nth-child(2) { --card-index: 1; }
+  body[data-studio-page] .lib-grid > .lib-card-shell:nth-child(3),
+  body[data-studio-page] .candidate-grid > .candidate-card:nth-child(3),
+  body[data-studio-page] .storyboard-grid > .storyboard-card:nth-child(3),
+  body[data-studio-page] .media-grid > .media-card:nth-child(3) { --card-index: 2; }
+  body[data-studio-page] .lib-grid > .lib-card-shell:nth-child(4),
+  body[data-studio-page] .candidate-grid > .candidate-card:nth-child(4),
+  body[data-studio-page] .storyboard-grid > .storyboard-card:nth-child(4),
+  body[data-studio-page] .media-grid > .media-card:nth-child(4) { --card-index: 3; }
+  body[data-studio-page] .lib-grid > .lib-card-shell:nth-child(5),
+  body[data-studio-page] .candidate-grid > .candidate-card:nth-child(5),
+  body[data-studio-page] .storyboard-grid > .storyboard-card:nth-child(5),
+  body[data-studio-page] .media-grid > .media-card:nth-child(5) { --card-index: 4; }
+  body[data-studio-page] .lib-grid > .lib-card-shell:nth-child(6),
+  body[data-studio-page] .candidate-grid > .candidate-card:nth-child(6),
+  body[data-studio-page] .storyboard-grid > .storyboard-card:nth-child(6),
+  body[data-studio-page] .media-grid > .media-card:nth-child(6) { --card-index: 5; }
+  /* Tools and edit tabs reveal one work surface at a time: no list delay. */
+  body[data-studio-page="model"] .media-grid > .media-card {
+    animation-duration: 220ms;
+    animation-delay: 0ms;
+  }
+  @keyframes zs-arrive {
+    from { opacity: 0; transform: translateY(5px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes zs-card-arrive {
+    from { opacity: 0; transform: translateY(8px) scale(.992); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body[data-studio-page] *, body[data-studio-page] *::before, body[data-studio-page] *::after {
+    animation: none !important;
+    transition-duration: .01ms !important;
+  }
+  body[data-studio-page] :is(button, .lib-card-shell, .shot-card, .job-card, .asset-card, .storyboard-card, .proposal-card):is(:active, :hover) { transform: none !important; }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  body[data-studio-page] { background-image: none; }
+  .studio-topbar, .studio-ready .studio-sidebar,
+  body[data-studio-page] :is(.panel, .entry-context, .workspace-diagnostics, .workflow-panel,
+    .media-pipeline, .settings-panel, .quality-stage-section, .quality-workflow, .screenplay, .script-paper,
+    .studio-command),
+  body[data-studio-page="entry"] .entry-card {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+  .studio-topbar { background: var(--s-1); }
+  .studio-ready .studio-sidebar { background: var(--s-0); }
+  body[data-studio-page] :is(.panel, .entry-context, .workspace-diagnostics, .workflow-panel,
+    .media-pipeline, .settings-panel, .quality-stage-section, .quality-workflow, .screenplay, .script-paper) { background: var(--s-2); }
+  body[data-studio-page="entry"] .entry-card { background: var(--s-2); }
+  body[data-studio-page] .studio-command { background: var(--s-3); }
+  body[data-studio-page] .studio-command::backdrop { backdrop-filter: none; -webkit-backdrop-filter: none; }
+}
+
+/* Native cross-page fade keeps the five work areas spatially continuous. */
+.extension-result img { display: block; max-width: 100%; max-height: 520px; object-fit: contain; border-radius: var(--r-sm, 12px); margin: 12px 0; }
+.extension-candidate { margin: 16px 0; padding: 16px; border: 1px solid var(--edge); border-radius: var(--r-md, 16px); }
+.extension-candidate p { white-space: pre-wrap; overflow-wrap: anywhere; }
+@view-transition { navigation: auto; }
+.studio-sidebar { view-transition-name: studio-sidebar; }
+.studio-topbar { view-transition-name: studio-topbar; }
+::view-transition-group(studio-sidebar), ::view-transition-group(studio-topbar) { animation-duration: 180ms; }
+::view-transition-old(studio-sidebar), ::view-transition-old(studio-topbar) { animation: none; }
+::view-transition-new(studio-sidebar), ::view-transition-new(studio-topbar) { animation: zs-page-in 180ms var(--e-out) both; }
+::view-transition-old(root) { animation: zs-page-out 100ms ease-out both; }
+::view-transition-new(root) { animation: zs-page-in 180ms var(--e-out) both; }
+@keyframes zs-page-out { to { opacity: 0; } }
+@keyframes zs-page-in { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  @view-transition { navigation: none; }
+}
+
+/* Independent work surfaces transmit the one pre-softened moving field.
+ * Avoid sampling and blurring the same video separately for every card.
+ * Overlapping topbar, dialogs and mobile drawer retain local backdrop blur. */
+body[data-studio-page] :is(.media-card, .entry-card, .lib-card-shell, .settings-panel),
+body[data-studio-page="model"] .panel:not(.result-panel):not(.media-pipeline):not(.quality-stage-section) {
+  background: var(--glass-sheen), var(--glass);
+  border-color: var(--edge-strong); border-top-color: var(--edge-lit); border-bottom-color: var(--edge-shadow);
+  box-shadow: var(--lift-2);
+  backdrop-filter: none; -webkit-backdrop-filter: none;
+}
+body[data-studio-page="entry"] .entry-card { box-shadow: var(--lift-3); }
+body[data-studio-page] .settings-panel { backdrop-filter: blur(8px) saturate(125%); -webkit-backdrop-filter: blur(8px) saturate(125%); }
+body[data-studio-page] :is(.media-card, .panel, .entry-card) :is(input, textarea, select) {
+  background: color-mix(in srgb, var(--s-0) 72%, var(--s-3));
+  border-color: color-mix(in srgb, var(--edge-strong) 78%, transparent);
+  box-shadow: inset 0 1px 3px rgb(4 2 21 / 17%), 0 1px 0 rgb(233 223 255 / 5%);
+}
+:root[data-theme="light"] body[data-studio-page] :is(.media-card, .panel, .entry-card) :is(input, textarea, select) { background: rgb(255 255 255 / 90%); }
+body[data-studio-page] .studio-command-row[aria-selected="true"] {
+  background: linear-gradient(105deg, rgb(168 143 255 / 16%), rgb(102 111 236 / 5%));
+  box-shadow: inset 0 1px 0 rgb(238 226 255 / 17%), inset 0 0 0 1px rgb(183 163 255 / 21%);
+}
+@media (prefers-reduced-transparency: reduce), (forced-colors: active) {
+  :root body[data-studio-page] :is(.studio-sidebar, .studio-topbar, .panel, .media-card, .entry-card, .lib-card-shell, .settings-panel, dialog, .studio-command) {
+    backdrop-filter: none; -webkit-backdrop-filter: none; background: var(--s-2);
+  }
+}
+
+/* Light is a changing density field. CSS remains the capability fallback only. */
+.studio-dream-canvas { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; }
+.studio-dream-video { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; pointer-events:none; }
+.studio-aurora[data-renderer="dream-field"]::before,
+.studio-aurora[data-renderer="dream-field"]::after,
+.studio-aurora[data-renderer="dream-film"]::before,
+.studio-aurora[data-renderer="dream-film"]::after { display:none; animation:none; }
+:root[data-theme="light"] .studio-aurora[data-renderer="dream-field"] { opacity:1; }
+:root[data-theme="light"] .studio-aurora[data-renderer="dream-film"] { opacity:.21; }
+:root {
+  --dream-light-x:58%; --dream-light-y:45%; --dream-rim:.31; --dream-blue-rim:.19;
+  --glass-sheen:radial-gradient(ellipse at var(--dream-light-x) var(--dream-light-y),rgb(212 196 255 / 12%),transparent 67%),linear-gradient(145deg,rgb(236 227 255 / 7%),transparent 35%,rgb(85 131 255 / 4%));
+}
+body[data-studio-page] :is(.media-card,.entry-card,.lib-card-shell,.studio-command),
+body[data-studio-page="model"] .panel:not(.result-panel):not(.media-pipeline):not(.quality-stage-section) {
+  border-top-color:rgb(229 219 255 / var(--dream-rim));
+  border-left-color:rgb(178 197 255 / var(--dream-blue-rim));
+  box-shadow:inset 0 1px 0 rgb(246 240 255 / 20%),inset 1px 0 0 rgb(216 208 255 / 7%),inset 0 -2px 3px rgb(4 3 25 / 26%),0 2px 0 rgb(6 5 22 / 38%),0 22px 50px -23px rgb(3 2 18 / 68%);
+}
+body[data-studio-page] .studio-command {
+  background:var(--glass-sheen),color-mix(in srgb,var(--s-3) 69%,transparent);
+  box-shadow:inset 0 1px 0 rgb(247 240 255 / 26%),inset 1px 0 0 rgb(216 208 255 / 9%),inset 0 -2px 3px rgb(4 3 25 / 28%),0 3px 0 rgb(6 5 22 / 38%),0 30px 85px -19px rgb(3 2 18 / 76%);
+}
+@media (prefers-reduced-transparency:reduce),(forced-colors:active) {
+  :root body[data-studio-page] :is(.media-card,.entry-card,.lib-card-shell,.studio-command) { background:var(--s-2);backdrop-filter:none;-webkit-backdrop-filter:none; }
+}
+
+/* Opt-in original WebGL material sample. Geometry and DOM hit targets stay fixed. */
+.studio-glass-webgl { display:none; position:absolute; inset:0; width:100%; height:100%; z-index:-1; pointer-events:none; border-radius:18px; }
+.studio-sidebar[data-glass="webgl"] > .studio-glass-webgl { display:block; }
+.studio-ready .studio-sidebar[data-glass="webgl"] { isolation:isolate; background:transparent; border-right-color:transparent; box-shadow:9px 0 24px -20px rgb(4 2 20 / 45%); }
+
+/* One shared scene supplies the moving light field and independent glass surfaces. */
+.studio-glass-scene { position:fixed; inset:0; width:100%; height:100%; z-index:-1; pointer-events:none; contain:strict; }
+.studio-glass-scene[hidden] { display:none; }
+.studio-aurora[data-shared-glass="ready"] .studio-dream-video { will-change:transform; }
+body.studio-ready[data-studio-page] [data-glass-surface="webgl"] {
+  background:transparent; border-color:transparent;
+  backdrop-filter:none; -webkit-backdrop-filter:none;
+  box-shadow:0 18px 40px -25px rgb(3 2 18 / 60%);
+}
+
+/* Raised navigation material: stable DOM, inset silhouette and separated shadow. */
+@media (min-width:801px) {
+  body.studio-ready .studio-sidebar { top:12px; bottom:12px; left:12px; width:calc(var(--studio-width) - 24px); padding:20px 10px 14px; border-radius:22px; border:1px solid rgb(225 235 255 / 24%); }
+  body.studio-ready .studio-sidebar .studio-brand { margin-left:6px; margin-right:0; gap:8px; }
+  body.studio-ready .studio-sidebar :is(nav > a,.studio-context-link,.workspace-nav button) { padding-left:9px; padding-right:7px; gap:9px; }
+  body.studio-ready .studio-sidebar .studio-sidebar-footer { padding-left:9px; padding-right:0; }
+  body.studio-ready .studio-topbar { top:12px; left:calc(var(--studio-width) + 12px); right:16px; height:50px; border-radius:17px; padding:0 20px; isolation:isolate; border:1px solid rgb(225 235 255 / 24%); }
+  body.studio-ready[data-studio-page] .studio-sidebar[data-glass-surface="webgl"] { box-shadow:2px 8px 22px -8px rgb(9 8 33 / 22%); }
+}
+/* One complete navigation surface, including breadcrumb and search, at every size. */
+body.studio-ready[data-studio-page] .studio-topbar[data-glass-surface="webgl"] { box-shadow:0 7px 20px -8px rgb(9 8 33 / 20%); }
+@media (max-width:800px) {
+  body.studio-ready:not(.studio-moneyprinter) .studio-topbar { top:8px; left:8px; right:8px; height:48px; border-radius:14px; padding:0 9px; isolation:isolate; border:1px solid rgb(225 235 255 / 15%); }
+}
+.studio-glass-front { position:absolute; inset:0; width:100%; height:100%; z-index:-1; pointer-events:none; border-radius:inherit; }
+.studio-glass-front[hidden] { display:none; }
+
+/* The board's legacy modal must receive input above the fixed navigation. */
+body.studio-ready[data-studio-page="board"] .modal-bg { z-index:100; }
+
+/* Shared control geometry; measured against the same CSS viewport as the scene. */
+body[data-studio-page="library"] .library-tools :is(.library-search,.library-filter,.library-sort,.library-clear) { box-sizing:border-box; height:44px; min-height:44px; line-height:20px; }
+.studio-sidebar nav > a > svg { flex:0 0 18px; width:18px; height:18px; }
+/* A foreground canvas covers the topbar border box, just like the shared pass. */
+.studio-glass-front { inset:-1px; width:calc(100% + 2px); height:calc(100% + 2px); }
+
+/* Navigation is a thick optical pane, including the desktop overlay drawer.
+ * Its own floor and frosting keep page text from showing through the menu;
+ * the shared light field contributes a small sheen above that stable floor. */
+body.studio-ready[data-studio-page] .studio-sidebar {
+  --nav-glass-floor: rgb(24 27 61 / 86%);
+  --nav-glass-sheen: rgb(169 173 255 / 17%);
+  --nav-glass-edge: rgb(213 225 255 / 40%);
+  --nav-glass-rim: rgb(245 243 255 / 66%);
+  background:
+    linear-gradient(155deg, var(--nav-glass-sheen), transparent 43%),
+    linear-gradient(90deg, rgb(182 201 255 / 7%), transparent 8%, transparent 94%, rgb(8 10 34 / 25%)),
+    var(--nav-glass-floor);
+  border: 1px solid var(--nav-glass-edge);
+  border-top-color: var(--nav-glass-rim);
+  border-left-color: rgb(221 235 255 / 50%);
+  box-shadow:
+    inset 1px 1px 0 rgb(248 245 255 / 32%),
+    inset -2px -2px 0 rgb(5 8 30 / 44%),
+    inset 3px 0 7px rgb(183 199 255 / 12%),
+    inset -5px 0 10px rgb(7 8 28 / 24%),
+    0 0 0 1px rgb(5 8 26 / 35%),
+    8px 12px 34px -12px rgb(2 5 23 / 65%);
+  backdrop-filter: blur(26px) saturate(135%);
+  -webkit-backdrop-filter: blur(26px) saturate(135%);
+  isolation: isolate;
+}
+body.studio-ready[data-studio-page] .studio-sidebar > :is(.studio-glass-front, .studio-glass-webgl) { opacity: .16; }
+body.studio-ready[data-studio-page] .studio-sidebar nav > a[aria-current] {
+  background: linear-gradient(140deg, rgb(167 166 255 / 19%), rgb(95 96 169 / 12%));
+  box-shadow: inset 0 1px 0 rgb(236 231 255 / 22%), inset 0 0 0 1px rgb(200 198 255 / 22%), 0 3px 8px rgb(3 5 23 / 18%);
+}
+body.studio-ready[data-studio-page] .studio-nav-shade:not([hidden]) { background: rgb(7 10 28 / 24%); }
+:root[data-theme="light"] body.studio-ready[data-studio-page] .studio-sidebar {
+  --nav-glass-floor: rgb(232 235 249 / 94%);
+  --nav-glass-sheen: rgb(255 255 255 / 54%);
+  --nav-glass-edge: rgb(110 112 156 / 27%);
+  --nav-glass-rim: rgb(255 255 255 / 96%);
+  border-left-color: rgb(255 255 255 / 89%);
+  box-shadow: inset 1px 1px 0 rgb(255 255 255 / 86%), inset -2px -2px 0 rgb(92 94 146 / 15%), inset 3px 0 7px rgb(255 255 255 / 35%), 8px 12px 34px -12px rgb(40 38 83 / 28%);
+}
+@media (prefers-reduced-transparency: reduce), (forced-colors: active) {
+  :root body.studio-ready[data-studio-page] .studio-sidebar { background: var(--s-2); backdrop-filter: none; -webkit-backdrop-filter: none; }
+  body.studio-ready[data-studio-page] .studio-sidebar > :is(.studio-glass-front, .studio-glass-webgl) { display: none; }
+}
+/* Only the touched button moves; no layout, global blur or idle animation. */
+body[data-studio-page] button[data-studio-press] { scale:var(--press-x,1) var(--press-y,1); filter:brightness(var(--press-light,1)); transform-origin:center; will-change:scale,filter; transition:background-color .16s,border-color .16s,color .16s,box-shadow .16s; }
+@media(prefers-reduced-motion:reduce) { body[data-studio-page] button[data-studio-press] { scale:none!important; filter:none!important; will-change:auto; } }

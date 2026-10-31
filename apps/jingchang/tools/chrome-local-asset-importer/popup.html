@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>镜场网页素材采集</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <header>
+    <div class="brand-mark">镜</div>
+    <div class="brand-copy"><strong>网页素材采集</strong><span>仅导入到本机镜场</span></div>
+    <button id="side-panel" class="icon-button" title="在侧栏打开">↗</button>
+  </header>
+
+  <section class="connection">
+    <label for="server-url">本机服务地址</label>
+    <div class="connect-row">
+      <input id="server-url" value="http://127.0.0.1:4768" spellcheck="false">
+      <button id="connect" class="secondary">连接</button>
+    </div>
+    <p id="connection-status" class="status" role="status">尚未连接</p>
+  </section>
+
+  <section class="scan-controls">
+    <button id="scan" class="primary" disabled>扫描当前网页</button>
+    <button id="capture" class="secondary" disabled>截取可见画面</button>
+    <button id="network-capture" class="secondary" style="grid-column:1/-1" disabled>监听网络视频（60秒）</button>
+    <label class="check-row"><input id="scroll-first" type="checkbox">扫描前滚动加载懒加载图片</label>
+    <label class="check-row"><input id="include-cross-frames" type="checkbox">扫描跨域 iframe（逐站申请权限）</label>
+  </section>
+
+  <section class="results-head">
+    <div><strong>采集结果</strong><span id="result-count">尚未扫描</span></div>
+    <button id="select-all" class="text-button" disabled>全选</button>
+  </section>
+  <div id="items" class="items" aria-live="polite"><div class="empty">连接本机服务后扫描网页。</div></div>
+
+  <section class="import-controls">
+    <label for="category">保存分类</label>
+    <input id="category" maxlength="80" value="网页采集">
+    <label class="check-row classify-toggle"><input id="classify-after-import" type="checkbox" disabled>导入后智能分类所选图片</label>
+    <form id="classification-settings" class="classification-settings" hidden>
+      <label for="classification-model">图片理解模型</label>
+      <select id="classification-model" required><option value="">连接本机服务以读取模型</option></select>
+      <label for="classification-key">API Key（仅本次使用，不保存）</label>
+      <input id="classification-key" type="password" maxlength="4096" autocomplete="off" placeholder="本机免认证模型可留空">
+      <div class="budget-row" id="classification-budget-row">
+        <label for="classification-budget">单张预算</label>
+        <input id="classification-budget" type="number" min="0.01" max="1000000" step="0.01" placeholder="填写单张允许的预算">
+        <select id="classification-currency" aria-label="预算币种"><option value="CNY">人民币</option><option value="USD">美元</option></select>
+      </div>
+      <p id="classification-summary" class="classification-summary">仅选择本地已配置的图片理解模型。</p>
+      <label class="consent-row"><input id="classification-consent" type="checkbox"> <span id="classification-consent-copy">我同意发送所选图片进行智能分类。</span></label>
+      <p class="classification-warning">分类会把支持的图片发送到所选模型，最多每张请求一次。填写的预算是授权记录，不限制服务商实际扣费；出现错误后本次导入不会自动重试分类。</p>
+    </form>
+    <div class="action-row">
+      <button id="download" class="secondary" disabled>下载所选</button>
+      <button id="import" class="primary" type="button" disabled>导入所选</button>
+    </div>
+    <p class="footnote">网络监听只在点击后申请权限，限当前标签页60秒，只读媒体响应类型和地址；面板关闭即停止，地址不写入项目或日志。最多覆盖扫描发现的12个来源。iframe 扫描默认关闭，拒绝后仍可扫描主页面；导入只发到本机镜场。</p>
+  </section>
+  <script type="module" src="popup.js"></script>
+</body>
+</html>

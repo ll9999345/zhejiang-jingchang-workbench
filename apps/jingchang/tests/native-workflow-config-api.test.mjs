@@ -1,0 +1,18 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {promises as fs} from 'node:fs';
+import path from 'node:path';
+import {createHash} from 'node:crypto';
+import {localServer} from './helpers/library-backup-server.mjs';
+import {nativeGraph,nativeConfig,nativeRhConfig} from './helpers/native-workflow-config-fixture.mjs';
+async function inventory(dir){let out={};for(const entry of await fs.readdir(dir,{withFileTypes:true}).catch(e=>e.code==='ENOENT'?[]:Promise.reject(e))){const file=path.join(dir,entry.name);if(entry.isDirectory())for(const [key,value]of Object.entries(await inventory(file)))out[entry.name+'/'+key]=value;else if(entry.isFile())out[entry.name]=createHash('sha256').update(await fs.readFile(file)).digest('hex');}return out;}
+test('隔离服务原生配置API：只读字段预览、配对导入、修订保存及非法输入拒绝',async t=>{
+ const stage=process.env.NATIVE_CONFIG_EVIDENCE||path.join(process.cwd(),'artifacts','native-config-api-'+Date.now()),data=path.join(stage,'api-data');await fs.mkdir(data,{recursive:true});const app=await localServer(data);t.after(app.stop);const api=app.api,checks=[];
+ await t.test('POST预览直接图和已有模板都不写文件',async()=>{const before=await inventory(data),p=await api('/api/workflows/fields/preview','POST',{workflow:nativeGraph,nativeConfig});assert.equal(p.persisted,false);assert.equal(p.fields[0].nativeFieldId,'seed-field');assert.deepEqual(await inventory(data),before);checks.push('preview direct graph is read-only');});
+ const w=await api('/api/workflows','POST',{name:'本机原生配置API',workflow:nativeGraph,nativeConfig});
+ await t.test('配对导入与已有模板预览保留原图、字段编号和NULL',async()=>{assert.deepEqual(w.workflow,nativeGraph);assert.equal(w.fields[0].min,null);const before=await inventory(data),p=await api('/api/workflows/fields/preview','POST',{workflowId:w.id,nativeConfig});assert.equal(p.persisted,false);assert.deepEqual(await inventory(data),before);checks.push('paired import and existing preview');});
+ await t.test('明确保存增量修订；过期修订409不覆盖',async()=>{const next=await api('/api/workflows/'+w.id+'/config','PUT',{revision:0,nativeConfig});assert.equal(next.revision,1);const res=await fetch(app.base+'/api/workflows/'+w.id+'/config',{method:'PUT',headers:{'content-type':'application/json'},body:JSON.stringify({revision:0,nativeConfig})});assert.equal(res.status,409);assert.equal((await api('/api/workflows/'+w.id)).revision,1);checks.push('explicit save and stale revision rejected');});
+ await t.test('云字段预览只读；正常配置保存不携带原认证信息',async()=>{const before=await inventory(data),p=await api('/api/cloud-workflows/fields/preview','POST',{nativeConfig:nativeRhConfig});assert.equal(p.persisted,false);assert.deepEqual(p.fields[3].options,['1','2','3']);assert.deepEqual(await inventory(data),before);checks.push('RunningHub field preview is read-only');});
+ await t.test('无效目标、凭据和非法键400，无生成或资产记录',async()=>{for(const invalidConfig of [{fields:[{id:'bad',node:'9',input:'seed',type:'number',default:1}]},{...nativeConfig,apiKey:'synthetic-rejected'},JSON.parse('{"fields":[],"__proto__":{}}')]){const before=await inventory(data),r=await fetch(app.base+'/api/workflows/fields/preview',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({workflow:nativeGraph,nativeConfig:invalidConfig})});assert.equal(r.status,400);assert.deepEqual(await inventory(data),before);}assert.deepEqual(await fs.readdir(path.join(data,'jobs')).catch(()=>[]),[]);checks.push('invalid input rejected without writes or tasks');});
+ await fs.writeFile(path.join(stage,'api-result.json'),JSON.stringify({passed:true,checks,scope:'isolated loopback API',paidCalls:0,thirdPartyUploads:0},null,2));
+});

@@ -1,0 +1,45 @@
+{
+  "notice": "Upstream reference snippets retain root third_party/infinite-canvas/LICENSE. Local prior implementation and network guard retain project AGPL. Reference model workflow is not a checkpoint.",
+  "records": [
+    {
+      "original_path": "artifacts/candidate-qualification-20261026/network-guard.mjs",
+      "fixture": "tests/fixtures/reference/00-network-guard.mjs",
+      "sha256": "9b4dd432960ef11c1fa105b7f2d316fea6e2d079a089825e958ca21a4d75f99c"
+    },
+    {
+      "original_path": "artifacts/native-branch-routing-20261003-1791013756331/smart-canvas.js.reference",
+      "fixture": "tests/fixtures/reference/01-smart-canvas.js.reference",
+      "sha256": "5a5fc55e1f8a47a47904e767341d59b831b6cdebd503365bcf95037efc178a84"
+    },
+    {
+      "original_path": "artifacts/native-copy-identity-1792937907327/before/lib/native-media-maps.mjs",
+      "fixture": "tests/fixtures/reference/02-native-media-maps.mjs",
+      "sha256": "6ade5268bf177351bc520a11f5b0854ed527665fdc7a9d73edc5507e72ff7533"
+    },
+    {
+      "original_path": "artifacts/native-random-import-20261003-1791008249820/main.py.reference",
+      "fixture": "tests/fixtures/reference/03-main.py.reference",
+      "sha256": "2e0b1f0903d809715d92a982b849674a59292e7a89f3c2b7dbc44fd130080e8e"
+    },
+    {
+      "original_path": "artifacts/native-round-media-1792824546958/before/lib/native-flow-execution.mjs",
+      "fixture": "tests/fixtures/reference/04-native-flow-execution.mjs",
+      "sha256": "05de48c50ce1d79400a9facf38e192600f0424cc2c816b81393dd313718a0597"
+    },
+    {
+      "original_path": "artifacts/reference-0.90-20261001/smart-canvas.js",
+      "fixture": "tests/fixtures/reference/05-smart-canvas.js",
+      "sha256": "5a5fc55e1f8a47a47904e767341d59b831b6cdebd503365bcf95037efc178a84"
+    },
+    {
+      "original_path": "artifacts/reference-0.91-20261001/MiniMax_H3.json",
+      "fixture": "tests/fixtures/reference/06-MiniMax_H3.json",
+      "sha256": "693a0440052b868b140813bdee318d5a4a17684297955c3d21e722cd12ec9c98"
+    },
+    {
+      "original_path": "artifacts/reference-feature-audit-1792590371383/canvas.js",
+      "fixture": "tests/fixtures/reference/07-canvas.js",
+      "sha256": "a1e2dd0ba845ededca8a4351d0889e3569bab46479715408d22d2512482de1ed"
+    }
+  ]
+}

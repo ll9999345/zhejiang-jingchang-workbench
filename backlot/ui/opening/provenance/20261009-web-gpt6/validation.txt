@@ -1,0 +1,14 @@
+2026-10-09 local integration validation
+
+node --check backlot/ui/opening/terrain.js
+exit 0
+
+node --check backlot/ui/opening/opening.js
+exit 0
+
+node --test tests/backlot/web_opening.test.cjs
+tests 6; pass 6; fail 0; cancelled 0; skipped 0; todo 0
+
+The DOM and renderer in these tests are isolated fixtures, not a live browser.
+Source style[1] and script[0] are preserved exactly apart from surrounding whitespace.
+The real homepage matches index.before.html exactly after removing the 3 new static references.

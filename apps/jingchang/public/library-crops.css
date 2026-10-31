@@ -1,0 +1,21 @@
+#library-crops-dialog{color:var(--text);background:var(--panel);border-color:var(--line);font:inherit}
+#library-crops-dialog header{background:var(--panel);border-color:var(--line)}
+#library-crops-dialog .catalog-body{display:grid;gap:16px;padding:20px}
+#library-crops-dialog :is(button,select,input){font:inherit;color:var(--text);border-color:var(--line)}
+#library-crops-dialog button{background:var(--panel-soft,var(--panel));min-height:40px}
+#library-crops-dialog a{color:var(--accent);overflow-wrap:anywhere}
+#library-crops-dialog label{display:flex;flex-wrap:wrap;align-items:center;gap:8px;flex-direction:row;justify-content:flex-start;text-align:left}
+#library-crops-dialog input[type=checkbox]{width:18px;height:18px;flex:0 0 18px}
+#library-crops-dialog select{max-width:100%;min-height:40px;background:var(--panel)}
+#library-crops-dialog [data-crop-preview-box]>details>div{display:flex;flex-wrap:wrap;gap:16px;align-items:center;padding:12px;border-bottom:1px solid var(--line)}
+#library-crops-dialog .catalog-jobs article{color:var(--text);background:var(--panel-soft,var(--panel));border-color:var(--line);display:grid;gap:12px}
+#library-crops-dialog progress{display:block;width:100%;height:10px;accent-color:var(--accent)}
+#library-crops-dialog details>div{overflow-wrap:anywhere;padding-block:8px}
+#library-crops-dialog details a{display:block}
+#library-crops-dialog summary{cursor:pointer;min-height:32px}
+#library-crops-dialog button:focus-visible,#library-crops-dialog select:focus-visible,#library-crops-dialog input:focus-visible,#library-crops-dialog summary:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+@media(max-width:720px){#library-crops-dialog .catalog-body{padding:14px}#library-crops-dialog header{padding:14px}#library-crops-dialog header strong{font-size:16px}#library-crops-dialog [data-crop-prepare]{display:grid;gap:12px}#library-crops-dialog progress{height:12px}}
+@media(prefers-reduced-motion:reduce){#library-crops-dialog,#library-crops-dialog *{animation:none!important;transition:none!important}}
+@media(forced-colors:active){#library-crops-dialog,#library-crops-dialog header,#library-crops-dialog .catalog-jobs article{background:Canvas;color:CanvasText;border-color:CanvasText}#library-crops-dialog a{color:LinkText}}
+
+#library-crops-dialog :is([data-crop-start],[data-crop-apply]){background:var(--accent-soft,var(--panel));border-color:var(--accent)}

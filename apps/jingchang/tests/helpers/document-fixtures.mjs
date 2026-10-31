@@ -1,0 +1,11 @@
+import {execFileSync} from 'node:child_process';
+export const xmlEscape=x=>String(x).replace(/[<>&"']/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&apos;'}[c]));
+export function zip(entries){return execFileSync('python3',['-c',`import sys,json,base64,zipfile,io
+out=io.BytesIO()
+with zipfile.ZipFile(out,'w',zipfile.ZIP_DEFLATED) as z:
+ for name,data in json.load(sys.stdin): z.writestr(name,base64.b64decode(data))
+sys.stdout.buffer.write(out.getvalue())`],{input:JSON.stringify(entries.map(([name,data])=>[name,Buffer.from(data).toString('base64')])),maxBuffer:24*1024*1024});}
+export function docx(text='正文与表格 & <引用>'){return zip([['word/document.xml',`<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body><w:p><w:r><w:t>${xmlEscape(text)}</w:t><w:tab/><w:t>第二段</w:t><w:br/><w:t>换行</w:t></w:r></w:p><w:tbl><w:tr><w:tc><w:p><w:r><w:t>表格单元格</w:t></w:r></w:p></w:tc></w:tr></w:tbl></w:body></w:document>`]]);}
+export function xlsx({images=[],sheets=1,rows=2,cells=2}={}){const ns='http://schemas.openxmlformats.org/spreadsheetml/2006/main',rel='http://schemas.openxmlformats.org/officeDocument/2006/relationships';const entries=[['xl/workbook.xml',`<workbook xmlns="${ns}" xmlns:r="${rel}"><sheets>${Array.from({length:sheets},(_,i)=>`<sheet name="工作表${i+1}" sheetId="${i+1}" r:id="r${i+1}"/>`).join('')}</sheets></workbook>`],['xl/_rels/workbook.xml.rels',`<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">${Array.from({length:sheets},(_,i)=>`<Relationship Id="r${i+1}" Target="worksheets/sheet${sheets-i}.xml"/>`).join('')}</Relationships>`],['xl/sharedStrings.xml',`<sst xmlns="${ns}"><si><r><t>共享</t></r><r><t>文字</t></r></si></sst>`]];
+ for(let i=0;i<sheets;i++){const grid=Array.from({length:rows},(_,r)=>`<row r="${r+1}">${r===0?'<c r="A1" t="s"><v>0</v></c><c r="B1"><f>SUM(A2:A3)</f><v>42</v></c><c r="C1" t="b"><v>1</v></c>':Array.from({length:cells},(_,c)=>`<c r="${String.fromCharCode(65+c)}${r+1}" t="inlineStr"><is><t>表${i+1}行${r+1}列${c+1}</t></is></c>`).join('')}</row>`).join('');entries.push([`xl/worksheets/sheet${i+1}.xml`,`<worksheet xmlns="${ns}"><sheetData>${grid}</sheetData></worksheet>`]);}
+ for(const [i,image] of images.entries())entries.push([`xl/media/image${String(i).padStart(2,'0')}.${image.ext||'png'}`,image.bytes]);return zip(entries);}

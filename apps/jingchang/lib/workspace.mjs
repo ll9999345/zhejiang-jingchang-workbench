@@ -1,0 +1,15 @@
+import {GLB_MIME,inspectGlb} from '../public/glb-validation.js';
+import { promises as fs } from 'node:fs';
+import path from 'node:path';
+import { randomUUID } from 'node:crypto';
+
+export function userError(message,status=400){return Object.assign(new Error(message),{status});}
+export const safeId=id=>typeof id==='string'&&/^[a-zA-Z0-9_-]{1,100}$/.test(id);
+export async function atomicJson(file,value){await fs.mkdir(path.dirname(file),{recursive:true});const pending=file+'.pending-'+randomUUID();await fs.writeFile(pending,JSON.stringify(value));await fs.rename(pending,file);}
+export async function readJson(file,fallback){try{return JSON.parse(await fs.readFile(file,'utf8'));}catch(e){if(e.code==='ENOENT'&&fallback!==undefined)return fallback;throw e;}}
+export async function records(dir){await fs.mkdir(dir,{recursive:true});const files=(await fs.readdir(dir)).filter(f=>/^[\w-]+\.json$/.test(f));return (await Promise.all(files.map(f=>readJson(path.join(dir,f)).catch(()=>null)))).filter(Boolean);}
+export function textValue(value,max,label){if(typeof value!=='string'||!value.trim()||value.length>max)throw userError(`${label}须为 1–${max} 个字符`);return value.trim();}
+export function localUrl(value){let u;try{u=new URL(value);}catch{throw userError('请填写完整的本机服务地址');}if(!['http:','https:'].includes(u.protocol)||!['localhost','127.0.0.1','[::1]'].includes(u.hostname)||u.username||u.password||u.search||u.hash)throw userError('只支持不含凭据的本机服务地址');return u.href.replace(/\/$/,'');}
+export function assertNoCredentials(value){if(!value||typeof value!=='object')return;for(const [key,item] of Object.entries(value)){if(/(?:api.?key|(?:access|auth|api|refresh|bearer)[_-]?token|password|authorization|secret|credential)|^token$/i.test(key)&&item!==''&&item!==null&&item!==undefined)throw userError('工作流含密钥字段，请移除凭据后再导入；工作台不保存密钥');if(typeof item==='string'&&/Bearer\s+\S+|sk-[\w-]{16,}/.test(item))throw userError('工作流疑似含密钥，请移除后再导入');assertNoCredentials(item);}}
+export async function storeAsset(data,bytes,{name,type,category='',tags=[],source='import'}){if(!Buffer.isBuffer(bytes))bytes=Buffer.from(bytes);if(!bytes.length||bytes.length>150*1024*1024)throw userError('素材大小须为 1 字节至 150 MB');if(!/^(image\/(png|jpeg|webp|gif|avif|bmp)|video\/(mp4|webm|quicktime|x-flv|x-matroska)|audio\/[\w.+-]+|text\/plain|model\/gltf-binary|application\/json|application\/vnd\.openxmlformats-officedocument\.(wordprocessingml\.document|spreadsheetml\.sheet))(;.*)?$/.test(type))throw userError('不支持该素材格式');if(type.split(';')[0]===GLB_MIME){type=GLB_MIME;try{inspectGlb(bytes);}catch(e){throw userError(e.message);}}const id=randomUUID(),meta={id,name:textValue(name,200,'素材名称'),type,size:bytes.length,category:String(category).slice(0,80),tags:tags.slice(0,20).map(t=>String(t).slice(0,40)),source,createdAt:new Date().toISOString(),url:'/media/'+id};await fs.mkdir(path.join(data,'assets'),{recursive:true});await fs.writeFile(path.join(data,'assets',id),bytes);await atomicJson(path.join(data,'assets',id+'.json'),meta);return meta;}
+export async function loadAsset(data,id){if(!safeId(id))throw userError('素材编号无效');return readJson(path.join(data,'assets',id+'.json'));}

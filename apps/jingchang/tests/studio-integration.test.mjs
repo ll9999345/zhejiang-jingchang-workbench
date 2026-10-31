@@ -1,0 +1,43 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {promises as fs} from 'node:fs';
+import path from 'node:path';
+import os from 'node:os';
+import http from 'node:http';
+import {spawn} from 'node:child_process';
+import {once} from 'node:events';
+const png=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aR8sAAAAASUVORK5CYII=','base64');
+const key='synthetic-unified-workspace-key';
+test('创作、画布、素材和任务共享同一项目，回填冲突保护及幂等',async t=>{
+  const data=await fs.mkdtemp(path.join(os.tmpdir(),'jingchang-integrated-'));
+  let posts=0;
+  const mock=http.createServer(async(req,res)=>{for await(const _ of req){}posts++;res.setHeader('Content-Type','application/json');res.end(JSON.stringify({data:[{b64_json:png.toString('base64')},{b64_json:png.toString('base64')}]}));});
+  mock.listen(0,'127.0.0.1');await once(mock,'listening');t.after(()=>new Promise(r=>mock.close(r)));
+  const reservation=http.createServer();reservation.listen(0,'127.0.0.1');await once(reservation,'listening');const port=reservation.address().port;await new Promise(r=>reservation.close(r));
+  const child=spawn(process.execPath,['server.mjs'],{cwd:process.cwd(),env:{...process.env,PORT:String(port),JINGCHANG_DATA_DIR:data},stdio:['ignore','pipe','pipe']});
+  t.after(()=>{child.kill('SIGTERM');});
+  await Promise.race([once(child.stdout,'data'),once(child,'exit').then(()=>{throw new Error('test server exited');}),new Promise((_,reject)=>setTimeout(()=>reject(new Error('test server startup timeout')),6000).unref())]);
+  async function api(route,method='GET',body){const response=await fetch('http://127.0.0.1:'+port+route,{method,headers:{'content-type':'application/json'},body:body===undefined?undefined:JSON.stringify(body)});return {status:response.status,body:await response.json()};}
+  const baseUrl='http://127.0.0.1:'+mock.address().port+'/v1';
+  const p=(await api('/api/projects','POST',{name:'原有项目'})).body;
+  const studio=(await api('/api/studios','POST',{projectId:p.id,mode:'image'})).body;
+  assert.equal(studio.projectId,p.id);assert.equal(studio.name,p.name);
+  assert.equal((await api('/api/projects')).body.length,1);
+  assert.equal((await api('/api/studios?projectId='+p.id)).body[0].id,studio.id);
+  const changed=(await api('/api/studios/'+studio.id,'PUT',{...studio,name:'统一项目',prompt:'一只小猪',config:{...studio.config,baseUrl,count:2}})).body;
+  const renamed=(await api('/api/projects/'+p.id)).body;assert.equal(renamed.name,'统一项目');assert.equal(renamed.nodes.length,p.nodes.length);
+  const started=await api('/api/studios/'+studio.id+'/generate','POST',{revision:changed.revision,requestId:'unified-one',apiKey:key,authorization:{origin:new URL(baseUrl).origin,model:changed.config.model,requestLimit:1,budget:1,currency:'CNY',sendPrompt:true,sendReferences:false}});
+  assert.equal(started.status,202);const id=started.body.id;let job;
+  for(let i=0;i<150;i++){job=(await api('/api/jobs/'+id)).body;if(['completed','failed'].includes(job.status))break;await new Promise(r=>setTimeout(r,20));}
+  assert.equal(job.status,'completed');assert.equal(job.projectId,p.id);assert.equal(posts,1);
+  assert.equal((await api('/api/jobs?projectId='+p.id)).body[0].id,id);
+  assert.equal((await api('/api/assets')).body.length,2);
+  const apply='/api/studios/'+studio.id+'/jobs/'+id+'/apply';
+  assert.equal((await api(apply,'POST',{revision:-1})).status,409);
+  const applied=await api(apply,'POST',{revision:renamed.revision});assert.equal(applied.status,200);assert.equal(applied.body.nodes.length,p.nodes.length+2);assert.equal(applied.body.nodes[0].id,p.nodes[0].id);assert.equal(applied.body.assets.length,2);
+  const again=await api(apply,'POST',{revision:renamed.revision});assert.equal(again.status,200);assert.equal(again.body.revision,applied.body.revision);assert.equal(again.body.nodes.length,applied.body.nodes.length);
+  assert.equal((await api('/api/studios/'+studio.id)).body.projectRevision,applied.body.revision);
+  const fromBlank=(await api('/api/studios','POST',{name:'新建共享项目'})).body;assert.ok(fromBlank.projectId);assert.equal((await api('/api/projects')).body.length,2);
+  const otherApply=await api('/api/studios/'+fromBlank.id+'/jobs/'+id+'/apply','POST',{revision:0});assert.equal(otherApply.status,400);
+  async function scan(dir){for(const e of await fs.readdir(dir,{withFileTypes:true})){const file=path.join(dir,e.name);if(e.isDirectory())await scan(file);else assert.equal((await fs.readFile(file)).includes(Buffer.from(key)),false);}}await scan(data);
+});

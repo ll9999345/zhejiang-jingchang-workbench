@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Hypit 工程 · 浙江文旅</title><link rel="icon" href="/ui/favicon.svg">
+<link rel="stylesheet" href="/ui/studio.css"><link rel="stylesheet" href="/ui/theme.css"><link rel="stylesheet" href="/ui/hypit.css">
+<script defer src="/ui/studio.js"></script><script defer src="/ui/hypit.js"></script></head>
+<body data-studio-page="hypit"><main class="hypit-workbench">
+<header class="hypit-heading"><div><p class="hypit-eyebrow">HYPIT / LOCAL WORKSPACE</p><h1>把想法，做成可修改的画面。</h1><p>从原生工程到预览与成片，保留每一次制作记录。</p></div><label>运行版本<select id="hypitVersion" aria-label="运行版本"></select></label></header>
+<p id="hypitNotice" role="status" aria-live="polite">正在读取本机环境……</p>
+<div class="hypit-layout"><aside class="hypit-panel hypit-projects"><div class="hypit-section-title"><h2>工程</h2><button id="hypitRefresh" type="button">刷新</button></div>
+<label>当前工程<select id="hypitProject" aria-label="当前工程"><option value="">选择工程</option></select></label>
+<p id="hypitProjectHint" class="hypit-muted">新旧版本工程分别保存，切换版本不会迁移或改写原工程。</p>
+<div class="hypit-example"><h3>从官方示例开始</h3><label>示例<select id="hypitExample" aria-label="官方示例"></select></label><button id="hypitImport" type="button">另存为本机工程</button><p class="hypit-muted">只复制纯本机示例，不调用模型。原始示例继续保留。</p></div><div id="hypitMigration" class="hypit-example" hidden><h3>从兼容版迁移</h3><label>旧工程<select id="hypitLegacyProject" aria-label="待迁移旧工程"></select></label><button id="hypitMigrationInspect" type="button">检查迁移条件</button><p id="hypitMigrationSummary" class="hypit-muted" role="status">先检查差异；只创建新副本，原工程保留。</p><button id="hypitMigrationCopy" type="button" disabled>另存迁移副本</button></div></aside>
+<section class="hypit-panel hypit-editor" aria-labelledby="hypitProjectTitle"><div class="hypit-section-title"><h2 id="hypitProjectTitle">选择一个工程</h2><span id="hypitEnvironment" class="hypit-badge">本机工程</span></div>
+<div class="hypit-source-grid"><label>作者文件<select id="hypitSource" aria-label="作者文件"></select></label><label>执行文件<select id="hypitRun" aria-label="执行文件"></select></label></div>
+<div class="hypit-actions"><button id="hypitCheck" type="button">检查工程</button><button id="hypitPlan" type="button">查看执行计划</button><button id="hypitStudio" type="button">启动编辑器</button><button id="hypitBuild" type="button" class="hypit-primary">渲染成片 ↗</button></div>
+<p class="hypit-muted">渲染前会检查实际执行计划；外部模型需要单独的服务与预算授权。</p>
+<section id="hypitSpeech" class="hypit-speech" aria-labelledby="hypitSpeechTitle" hidden><h3 id="hypitSpeechTitle">本机中文语音</h3><p id="hypitSpeechStatus" role="status" aria-live="polite">正在读取语音服务状态……</p><p class="hypit-muted">中文 CPU 适配 · 每段音频最长 30 秒 · 离线识别与逐字对齐</p><div class="hypit-actions"><button id="hypitSpeechStart" type="button" disabled>启用并启动</button><button id="hypitSpeechStop" type="button" disabled>停止语音</button><button id="hypitSpeechRefresh" type="button">刷新状态</button></div></section>
+<div id="hypitPlanSummary" class="hypit-plan" hidden></div>
+<div id="hypitPreview" class="hypit-preview"><span>完成渲染后，在这里预览与下载。</span></div>
+<div id="hypitResults" class="hypit-results" aria-live="polite"></div>
+</section>
+<section class="hypit-panel hypit-task-panel"><div class="hypit-section-title"><h2>制作记录</h2><button id="hypitBuilds" type="button">读取成片记录</button></div><div id="hypitJobs"><p class="hypit-muted">此工程尚无本次任务。</p></div><details class="hypit-details"><summary>命令与详细回执</summary><pre id="hypitDetails">执行后显示实际回执。</pre></details></section>
+</div></main></body></html>

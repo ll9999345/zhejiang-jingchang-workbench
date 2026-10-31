@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="color-scheme" content="light dark">
+  <title>镜场 · 创作台</title>
+  <script src="/theme-bootstrap.js"></script><link rel="stylesheet" href="/creation-studio.css">
+  <link rel="stylesheet" href="/ark-credentials.css">
+  <link rel="stylesheet" href="/jade-motion.css">
+  <link rel="stylesheet" href="/cyan-glass.css">
+</head>
+<body data-native-page="creation-studio">
+  <div class="studio" id="studio" data-theme="dark">
+    <header class="topbar">
+      <a class="brand" href="/" data-project-link aria-label="返回项目画布"><span class="brand-mark">镜</span><span>镜场</span><i></i><small>创作台</small></a>
+      <div class="project-picker"><select id="project-select" aria-label="项目列表"></select><button id="rename-project" class="icon-button" title="重命名项目">✎</button><button id="new-project" class="icon-button" title="新建项目">＋</button></div>
+      <nav class="workspace-nav" aria-label="项目工作区"><a data-project-link id="back-canvas" href="/">画布 / 分镜 / 剪辑 ↗</a><span>创作台</span></nav><div class="top-actions"><button id="mode-video" class="mode-toggle active">▰ 视频</button><button id="mode-image" class="mode-toggle">▧ 图片</button><span class="top-divider"></span><button id="open-connect" class="outline-button">连接设置</button><button id="open-usage" class="plain-button">使用记录</button><button id="open-docs" class="plain-button">文档 / 工具</button><button id="theme-toggle" class="icon-button" title="切换深浅色">◐</button></div>
+      <button id="mobile-left-toggle" class="mobile-only icon-button" aria-label="切换侧栏">☰</button>
+    </header>
+    <main class="layout">
+      <aside class="left-panel" id="left-panel">
+        <div class="pane-heading"><div><b>创作资源</b><small>模板、素材与任务</small></div><button class="icon-button mobile-only" id="close-left">×</button></div>
+        <section class="templates-section"><div class="section-title">开始创作 <span>3 种方式</span></div><button class="template-card selected" data-template="text"><span class="template-icon">T</span><span><b>文生视频</b><small>从一句描述开始生成</small></span><span class="template-arrow">›</span></button><button class="template-card" data-template="image"><span class="template-icon">▧</span><span><b>图生视频</b><small>让静态画面动起来</small></span><span class="template-arrow">›</span></button><button class="template-card" data-template="multi"><span class="template-icon">◇</span><span><b>多参考创作</b><small>整理参考，按接口能力提交</small></span><span class="template-arrow">›</span></button></section>
+        <div class="library-tabs"><button class="library-tab active" data-library="assets">素材库</button><button class="library-tab" data-library="history">历史任务</button></div>
+        <div id="library-content" class="library-content"></div>
+        <div class="left-footer"><span class="online-dot"></span><span id="save-indicator">正在连接本机工作区…</span><button id="open-price" class="price-link">价格明细</button></div>
+      </aside>
+      <section class="work-area">
+        <div class="canvas-toolbar"><div class="tool-group"><button id="tool-select" class="tool-button selected" title="选择工具 (V)">↖</button><button id="tool-pan" class="tool-button" title="平移工具 (H)">✋</button><span class="tool-separator"></span><button id="view-canvas" class="view-button active">画布</button><button id="view-list" class="view-button">列表</button></div><div class="tool-group"><button id="undo" class="tool-button" title="撤销 (⌘Z)">↶</button><button id="redo" class="tool-button" title="重做 (⇧⌘Z)">↷</button><span class="tool-separator"></span><button id="fit-canvas" class="tool-button" title="适应画布 (0)">⊡</button><button id="zoom-out" class="tool-button" aria-label="缩小">−</button><span id="zoom-label">100%</span><button id="zoom-in" class="tool-button" aria-label="放大">＋</button></div></div>
+        <div class="canvas-wrap" id="canvas-wrap"><div class="canvas-grid"></div><div class="canvas-intro"><span>镜场 · 创作流程</span><h1 id="canvas-title">从构思到画面</h1><p id="canvas-context">五个步骤，让每次生成有据可循。</p></div><div id="canvas-world" class="canvas-world"><svg id="node-wires" class="node-wires" aria-hidden="true"></svg><article class="workflow-node" data-node="prompt"><header><span class="step-no">01</span><b>提示词</b><span class="node-badge">构思</span></header><div class="node-preview prompt-preview" id="preview-prompt">描述你想要的画面…</div><footer><span>创作意图</span><button data-jump="prompt">编辑 ↗</button></footer><i class="node-port left-port"></i><i class="node-port right-port"></i></article><article class="workflow-node" data-node="references"><header><span class="step-no">02</span><b>参考素材</b><span class="node-badge" id="reference-count">0 项</span></header><div class="node-preview reference-preview" id="preview-references"><span class="empty-reference">＋</span><span>拖入图片、视频或音频</span></div><footer><span>素材引导</span><button data-jump="references">管理 ↗</button></footer><i class="node-port left-port"></i><i class="node-port right-port"></i></article><article class="workflow-node" data-node="config"><header><span class="step-no">03</span><b>模型参数</b><span class="node-badge" id="node-model">Seedance</span></header><div class="node-preview config-preview" id="preview-config">720p · 16:9 · 4 秒</div><footer><span>输出设定</span><button data-jump="config">调整 ↗</button></footer><i class="node-port left-port"></i><i class="node-port right-port"></i></article><article class="workflow-node generate-node" data-node="generate"><header><span class="step-no">04</span><b>运行生成</b><span class="node-badge ready-badge">需授权</span></header><div class="node-preview generate-preview"><span class="play-icon">▶</span><span>确认目的地与预算后提交</span></div><footer><span>单次请求</span><button data-jump="generate">检查 ↗</button></footer><i class="node-port left-port"></i><i class="node-port right-port"></i></article><article class="workflow-node" data-node="output"><header><span class="step-no">05</span><b>输出</b><span class="node-badge" id="output-status">待生成</span></header><div class="node-preview output-preview" id="preview-output"><span class="output-symbol">▱</span><span>生成结果将在这里展示</span></div><footer><span>预览 / 下载</span><button data-jump="output">查看 ↗</button></footer><i class="node-port left-port"></i><i class="node-port right-port"></i></article></div>
+          <div class="canvas-list" id="canvas-list" hidden></div>
+          <div class="canvas-hint">拖动节点整理流程 · 拖动画布空白处平移 · 滚轮缩放</div><div class="minimap" id="minimap"><div class="minimap-world" id="minimap-world"></div><span>小地图</span></div>
+        </div>
+        <div class="mobile-runbar"><span id="mobile-cost">尚未填写单价</span><button id="mobile-generate" class="primary-button">检查并生成 <span>→</span></button></div>
+      </section>
+      <aside class="right-panel" id="right-panel"><div class="pane-heading right-heading"><div><b id="inspector-heading">提示词</b><small id="inspector-subtitle">清楚描述你希望看到的画面</small></div><div class="mobile-inspector-controls"><button class="icon-button mobile-only" id="mobile-right-toggle">⌄</button></div></div><div id="inspector" class="inspector"></div><div class="right-bottom"><div class="estimate-row"><div><small>参考价格估算</small><strong id="cost-estimate">尚未填写单价</strong></div><button id="open-price-inline" class="text-link">明细</button></div><button id="generate-button" class="primary-button">检查并生成 <span>→</span></button><small class="privacy-note">仅在你确认后发送到所填的上游 API</small></div></aside>
+    </main>
+    <input id="file-picker" type="file" accept="image/*,video/*,audio/*" multiple hidden>
+    <dialog id="dialog" class="studio-dialog"><div class="dialog-head"><div><b id="dialog-title"></b><small id="dialog-subtitle"></small></div><button id="dialog-close" class="icon-button" aria-label="关闭">×</button></div><div id="dialog-body" class="dialog-body"></div><div id="dialog-actions" class="dialog-actions"></div></dialog>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  </div>
+  <script type="module" src="/creation-studio.js"></script>
+  <script type="module" src="/ambient-glass.js"></script>
+</body>
+</html>

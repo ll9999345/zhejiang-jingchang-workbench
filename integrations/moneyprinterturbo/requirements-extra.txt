@@ -1,0 +1,2 @@
+# Optional upstream video-understanding adapter, installed in .runtime/mpt-python only.
+twelvelabs==1.3.4

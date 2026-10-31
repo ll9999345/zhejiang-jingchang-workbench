@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" type="image/svg+xml" href="/ui/favicon.svg?v=20260930">
+<title>Backlot</title>
+<script>
+  // A project board opened from the source folder must still use the running
+  // Backlot service; otherwise the “Backlot” link falls into the Mac file
+  // index and all API-backed controls become inert.
+  if (window.location.protocol === "file:") {
+    window.location.replace("http://localhost:4750/");
+  }
+</script>
+<link rel="stylesheet" href="/ui/board.css">
+<link rel="stylesheet" href="/ui/studio.css?v=20261001a">
+<link rel="stylesheet" href="/ui/theme.css?v=20260930e">
+<script defer src="/ui/vendor/motion-12.23.24.js"></script>
+<script defer src="/ui/studio.js?v=20261002canvas"></script>
+</head>
+<body data-studio-page="board">
+<div class="wrap" id="app"></div>
+<div class="modal-bg" id="modal"></div>
+<audio id="player"></audio>
+<script type="module" src="/ui/board.js"></script>
+</body>
+</html>

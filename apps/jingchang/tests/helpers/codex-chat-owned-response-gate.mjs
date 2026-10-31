@@ -1,0 +1,5 @@
+// Owned isolated server only. Pause after the durable original response exists,
+// before the local CLI receives it, so a real SIGKILL can verify recovery.
+import {promises as fs} from 'node:fs';import path from 'node:path';
+const file=process.env.CODEX_CHAT_TEST_GATE_FILE;
+if(file){const g=JSON.parse(await fs.readFile(file,'utf8')),data=await fs.realpath(process.env.JINGCHANG_DATA_DIR);if(!data.startsWith(path.resolve(g.root)+path.sep)||!path.basename(data).startsWith('data-'))throw Error('Gate refused non-owned test data');const base=path.join(data,'codex-chat-tasks'),link=fs.link;fs.link=async function(source,destination,...args){const result=await link.call(this,source,destination,...args);if(path.dirname(destination)===base&&(g.phase==='end'?/^[-\w]+\.end\.json$/:/^[-\w]+\.response\.json$/).test(path.basename(destination))){await fs.writeFile(g.ready,'original-response-durable',{flag:'wx'});for(;;){try{await fs.stat(g.release);break;}catch(e){if(e.code!=='ENOENT')throw e;}await new Promise(r=>setTimeout(r,20));}}return result;};}

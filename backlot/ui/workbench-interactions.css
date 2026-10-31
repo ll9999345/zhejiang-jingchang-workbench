@@ -1,0 +1,24 @@
+/* Scoped surfaces only: preserve the workbench theme, navigation and dialogs. */
+body[data-studio-page="model"] .settings-navigation {display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin:0 0 20px}
+body[data-studio-page="model"] .settings-tabs {position:relative;isolation:isolate;display:grid;grid-template-columns:repeat(4,minmax(70px,1fr));width:min(480px,100%);max-width:100%;padding:5px;gap:0;margin:0;border-radius:15px;background:var(--s-0,var(--studio-soft));border:1px solid var(--edge,var(--studio-line));overflow:hidden;flex-wrap:nowrap}
+body[data-studio-page="model"] .settings-tabs a {position:relative;z-index:1;display:flex;justify-content:center;align-items:center;min-height:42px;padding:8px 18px;font-size:13px;font-weight:600;line-height:1.3;border:0;border-radius:10px;background:none!important;box-shadow:none!important;color:var(--t-2,var(--studio-muted));transform:none!important;transition:color .12s}
+body[data-studio-page="model"] .settings-tabs a[aria-selected="true"] {color:var(--accent,#16866a)}
+body[data-studio-page="model"] .settings-tabs a:focus-visible {outline:2px solid var(--accent,#16866a);outline-offset:-3px}
+.settings-indicator {position:absolute;left:0;top:5px;bottom:5px;z-index:0;border-radius:10px;background:var(--s-2,var(--studio-panel));box-shadow:0 1px 3px #0002;pointer-events:none;border:1px solid color-mix(in srgb,var(--accent,#16866a) 24%,transparent)}
+.shell:is([data-workspace-view="tools"],[data-workspace-view="delivery"]) .settings-navigation {display:none!important}
+[data-settings-column] {scroll-margin-top:100px}
+[data-settings-column][hidden] {display:none!important}
+button.task-motion {display:inline-flex;align-items:center;justify-content:center;gap:9px;min-height:42px;transform-origin:center;transition:background-color .16s,border-color .16s,color .16s;position:relative}
+button.task-motion::before {content:'';width:15px;height:15px;flex:0 0 15px;box-sizing:border-box;border:1.6px solid currentColor;border-radius:5px;opacity:.85}
+button.task-motion[data-task-state="preparing"]::before,button.task-motion[data-task-state="submitting"]::before,button.task-motion[data-task-state="queued"]::before,button.task-motion[data-task-state="running"]::before,button.task-motion[data-task-state="unknown"]::before,button.task-motion[data-task-state="cancelling"]::before {border-radius:50%;border-right-color:transparent;animation:task-turn .85s linear infinite}
+button.task-motion[data-task-state="confirming"]::before {border-radius:50%;content:'?';font-size:11px;line-height:13px}
+button.task-motion[data-task-state="succeeded"]::before {content:'✓';border:0;font-size:17px;line-height:15px;color:var(--accent,#16866a)}
+button.task-motion[data-task-state="failed"]::before {content:'!';border-radius:50%;font-size:11px;line-height:13px;color:var(--bad,#bd4343)}
+button.task-motion[data-task-state="cancelled"]::before {content:'−';border-radius:50%;font-size:12px;line-height:12px}
+button.task-motion[data-task-state="succeeded"] {border-color:color-mix(in srgb,var(--accent,#16866a) 45%,transparent)}
+button.task-motion[data-task-state="failed"] {border-color:var(--bad,#bd4343)}
+button.task-motion:disabled[aria-busy="true"] {opacity:.8;cursor:progress}
+@keyframes task-turn {to{rotate:360deg}}
+@media(max-width:600px){body[data-studio-page="model"] .settings-tabs {width:100%;grid-template-columns:repeat(4,minmax(0,1fr))}body[data-studio-page="model"] .settings-tabs a {padding:9px 8px;font-size:12px}.settings-navigation>button{margin-left:auto}.task-motion{max-width:100%;white-space:normal}}
+@media(prefers-reduced-motion:reduce){button.task-motion,body[data-studio-page="model"] .settings-tabs a{transition:none!important;transform:none!important}button.task-motion::before{animation:none!important}.settings-indicator{transition:none!important}}
+@media(prefers-reduced-motion:reduce){body[data-studio-page="model"] .settings-indicator{transition:none!important}body[data-studio-page="model"] button.task-motion::before{animation:none!important}}

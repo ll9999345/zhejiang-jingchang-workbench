@@ -1,0 +1,57 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Validate Python
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            requirements-dev.txt
+
+      - name: Install system dependencies
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt -r requirements-dev.txt
+
+      - name: Install Jingchang dependencies
+        run: npm ci --prefix apps/jingchang --ignore-scripts
+
+      - name: Run lint smoke checks
+        run: python -m compileall -q web_api backlot tools lib
+
+      - name: Run unified Python integration checks
+        run: python -m pytest web_api/tests/test_canvas_bridge.py web_api/tests/test_hypit_speech_lifecycle.py web_api/tests/test_hypit_speech_service.py web_api/tests/test_hypit_workbench.py web_api/tests/test_hypit_runtime.py -q
+
+      - name: Run Jingchang source tests
+        run: JINGCHANG_TEST_PYTHON="$(command -v python)" npm test --prefix apps/jingchang

@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" type="image/svg+xml" href="/ui/favicon.svg?v=20260930">
+<title>浙江文旅 · 新建项目</title>
+<script>
+  // 直接打开源码文件时回到服务端入口，保证 CSS、JavaScript 和草稿路由同源。
+  if (window.location.protocol === "file:") {
+    window.location.replace("http://localhost:4750/create/guided");
+  }
+</script>
+<link rel="stylesheet" href="/ui/entry.css">
+<link rel="stylesheet" href="/ui/studio.css?v=20261001a">
+<link rel="stylesheet" href="/ui/theme.css?v=20260930e">
+<script defer src="/ui/vendor/motion-12.23.24.js"></script>
+<script defer src="/ui/studio.js?v=20261002canvas"></script>
+</head>
+<body data-studio-page="entry">
+<main class="entry-shell">
+  <header class="entry-topbar">
+    <a class="brand" href="/" aria-label="返回项目库"><span>浙</span><b>浙江文旅</b><small>AI DIRECTOR · BACKLOT</small></a>
+    <a class="back-link" href="/">返回项目库</a>
+  </header>
+
+  <section class="entry-card" aria-labelledby="entryHeading">
+    <header class="entry-header">
+      <div>
+        <span class="eyebrow">NEW PROJECT / SAFE DRAFT</span>
+        <h1 id="entryHeading">让下一段旅程，从这里开始</h1><p class="library-intro">说出想法，先比较三种创意，再决定怎么拍。</p>
+      </div>
+      <span class="safe-mark">免费规划</span>
+    </header>
+
+    <div class="entry-steps" aria-label="新建项目步骤">
+      <div class="entry-step active" data-step="1"><span>1</span><b>选择入口</b></div>
+      <div class="entry-step" data-step="2"><span>2</span><b>填写内容</b></div>
+      <div class="entry-step" data-step="3"><span>3</span><b>进入导演规划</b></div>
+    </div>
+
+    <section class="entry-stage" id="modeStage">
+      <div class="mode-grid">
+        <button class="mode-card active" type="button" data-mode="guided">
+          <span>推荐新手</span>
+          <h2>一句话导演</h2>
+          <p>输入目的地、主题和传播目标，先生成三条差异化创意路线，再由你选择并进入分镜。</p>
+          <small>自然语言 / 参考图片</small>
+        </button>
+        <button class="mode-card" type="button" data-mode="material">
+          <span>批量策划</span>
+          <h2>导入文案</h2>
+          <p>导入调研、活动方案或长文，先拆解事实、章节、人物和可视化线索，再形成可编辑提示词。</p>
+          <small>TXT / 粘贴正文</small>
+        </button>
+        <button class="mode-card" type="button" data-mode="storyboard">
+          <span>专业模式</span>
+          <h2>导入分镜</h2>
+          <p>导入现有分镜表，检查字段、时长、运镜和连续性，只补齐缺失生产环节。</p>
+          <small>CSV / TSV / 粘贴分镜</small>
+        </button>
+      </div>
+    </section>
+
+    <section class="entry-stage" id="contentStage" hidden>
+      <div class="content-head">
+        <div><span class="eyebrow" id="contentEyebrow">GUIDED DIRECTOR</span><h2 id="contentTitle">一句话导演</h2></div>
+        <button class="text-button" id="changeMode" type="button">更换入口</button>
+      </div>
+
+      <form id="entryForm" novalidate>
+        <div class="entry-panel" id="guidedPanel">
+          <label>用一句话告诉导演你想做什么
+            <textarea id="guidedPrompt" required minlength="2" placeholder="例如：南北湖秋日湖光与古城夜游，面向年轻游客，突出风景、动态运镜和自然转场"></textarea>
+          </label>
+          <div class="studio-prompt-examples" aria-label="试用主题"><button type="button" data-prompt="南北湖秋日湖光与古城夜游，面向年轻游客，突出真实风景与旅行氛围">南北湖 · 秋日漫游</button><button type="button" data-prompt="乌镇水乡的一天，从清晨薄雾到夜间灯影，呈现江南生活的细节">乌镇 · 水乡日记</button><button type="button" data-prompt="海宁硖石灯彩，讲述非遗技艺与传承人的故事，面向年轻观众">硖石灯彩 · 非遗故事</button></div>
+          <div class="entry-fields">
+            <label>内容类型<select id="guidedType"><option>景区推荐</option><option>城市形象宣传</option><option>节庆活动推广</option><option>非遗文化传播</option></select></label>
+            <label>导演模式<select id="guidedWorkflow"><option value="quality">质量优先 · 每阶段展示并确认</option><option value="speed">速度优先 · 系统自动推进</option></select></label>
+            <label>画幅<select id="guidedAspect"><option value="9:16">9:16 · 竖屏</option><option value="16:9">16:9 · 横屏</option></select></label>
+            <label>费用上限（元）<input id="guidedBudget" type="number" min="0.01" max="50" value="50"></label>
+          </div>
+          <p class="safe-note">系统会先免费生成事实核验清单、三案创意和分镜，不会直接调用付费视频模型。</p>
+        </div>
+
+        <div class="entry-panel" id="materialPanel" hidden>
+          <label class="upload-zone"><input id="materialFiles" type="file" accept=".txt"><b>选择长文与参考素材</b><span>读取 TXT 文本；Word 或 PDF 请先复制正文，粘贴到下方。</span></label>
+          <div class="file-list" id="materialFileList">尚未选择文件</div>
+          <label>粘贴或补充素材内容
+            <textarea id="materialText" placeholder="将调研、活动方案、景区介绍或必须保留的事实粘贴到这里……"></textarea>
+          </label>
+          <label>素材处理方式<select id="materialStrategy"><option value="auto">自动识别事实、章节、人物与场景</option><option value="chapter">按章节拆解</option><option value="facts">只提取事实与素材</option></select></label>
+          <p class="safe-note">导入的文字会成为创作依据，你可以在下一步继续修改。</p>
+        </div>
+
+        <div class="entry-panel" id="storyboardPanel" hidden>
+          <label class="upload-zone"><input id="storyboardFiles" type="file" accept=".csv,.tsv"><b>选择现有分镜表</b><span>读取 CSV / TSV；Excel 请另存为 CSV，或直接粘贴表格内容。</span></label>
+          <div class="file-list" id="storyboardFileList">尚未选择文件</div>
+          <label>粘贴分镜表
+            <textarea id="storyboardText" placeholder="镜头号\t旁白\t画面提示词\t运镜\t时长\n01\t……\t……\t……\t8"></textarea>
+          </label>
+          <div class="entry-fields">
+            <label>接管范围<select id="storyboardScope"><option>保留原结构，只补齐缺失环节</option><option>重新评估结构与镜头数量</option><option>仅做质量检查与剪映组装</option></select></label>
+            <label>连续性策略<select id="storyboardContinuity"><option value="shared_boundary">共享边界帧连续性图</option><option value="preserve_contract">保留原转场并建立契约</option><option value="independent">独立镜头直接拼接</option></select></label>
+          </div>
+          <div class="table-preview" id="storyboardPreview">等待导入或粘贴分镜表。</div>
+        </div>
+
+        <div class="entry-actions">
+          <button class="ghost-button" id="backToModes" type="button">上一步</button>
+          <span id="entryMessage">免费规划完成后，才会进入下一阶段。</span>
+          <button class="primary-button" type="submit">生成三种创意 →</button>
+        </div>
+      </form>
+    </section>
+  </section>
+</main>
+<script type="module" src="/ui/entry.js"></script>
+</body>
+</html>

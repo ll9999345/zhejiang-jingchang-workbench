@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" type="image/svg+xml" href="/ui/favicon.svg?v=20260930">
+<title>浙江文旅 · 真实素材自动成片</title>
+<script>
+  if (window.location.protocol === "file:") {
+    const query = window.location.search || "";
+    window.location.replace(`http://localhost:4750/footage${query}`);
+  }
+</script>
+<link rel="stylesheet" href="/ui/studio.css?v=20261001a">
+<link rel="stylesheet" href="/ui/theme.css?v=20260930e">
+<link rel="stylesheet" href="/ui/footage.css">
+<script defer src="/ui/vendor/motion-12.23.24.js"></script>
+<script defer src="/ui/studio.js?v=20261002canvas"></script>
+</head>
+<body data-studio-page="footage" data-studio-layout="moneyprinter">
+<main class="footage-shell" id="footageApp">
+  <header class="footage-header">
+    <div class="brand-lockup"><span class="brand-mark" aria-hidden="true">浙</span><div><h1>浙江文旅视频制作</h1></div></div>
+    <div class="header-actions">
+      <span class="project-chip" id="projectBadge">读取项目中</span>
+      <a class="back-link" id="backToModel" href="/create/guided">返回项目</a>
+      <button class="quiet-button" id="openTaskManagerButton" type="button" aria-haspopup="dialog">任务管理</button>
+      <button class="quiet-button" id="openSettingsButton" type="button" aria-haspopup="dialog">设置</button>
+    </div>
+  </header>
+  <nav class="production-steps" aria-label="真实素材成片流程" hidden>
+    <a class="production-step active" id="stepScript" data-step="1" href="#scriptHeading"><span>1</span><div><b>脚本</b><small>确认当前方案</small></div></a>
+    <a class="production-step" id="stepMaterials" data-step="2" href="#sourceHeading"><span>2</span><div><b>素材</b><small>自动找素材</small></div></a>
+    <a class="production-step" id="stepExport" data-step="3" href="#actionHeading"><span>3</span><div><b>初剪与导出</b><small>旁白、字幕、复核</small></div></a>
+  </nav>
+  <section class="page-message" id="pageMessage" role="status" aria-live="polite"><span class="message-dot" aria-hidden="true"></span><p id="pageMessageText">正在读取当前项目……</p></section>
+  <section class="project-required" id="projectRequired" hidden aria-labelledby="projectRequiredHeading">
+    <h2 id="projectRequiredHeading">先选择一个项目</h2><p>这里会承接项目的当前文案与镜头。选择已有项目，或从新建作品开始。</p>
+    <label class="field-label" for="projectPicker">已有项目<select id="projectPicker" class="control-input"><option value="">正在读取已有项目……</option></select></label>
+    <div class="settings-actions"><button class="quiet-button" id="selectProjectButton" type="button" disabled>进入所选项目</button><a class="quiet-button" href="/">项目库</a><a class="quiet-button" href="/create/guided">新建作品</a></div><p class="column-note" id="projectPickerStatus" aria-live="polite"></p>
+  </section>
+
+  <div class="moneyprinter-columns">
+    <section class="moneyprinter-column" data-settings-column="copy" aria-labelledby="scriptHeading">
+      <div class="column-heading"><h2 id="scriptHeading">文案设置</h2><span class="status-pill" id="scriptStatus">读取中</span></div>
+      <div class="proposal-note"><label class="field-label">当前项目主题</label><b id="topicLabel">当前提案</b><p id="proposalSummary">沿用当前项目的方案。修改正文后，可更新分镜与搜索词。</p></div>
+      <label class="field-label" for="scriptEditor">视频文案</label>
+      <textarea id="scriptEditor" class="script-editor" rows="14" placeholder="选择项目后，当前方案的文案会出现在这里。"></textarea>
+      <div class="script-footer"><span id="scriptMeta">0 字 · 尚未规划分镜</span><button class="quiet-button" id="replanButton" type="button" disabled>更新分镜</button></div>
+      <p class="column-note">AI 文案与关键词服务在顶部“设置”中；采用文案后仍需检查镜头和素材。</p>
+    </section>
+
+    <section class="moneyprinter-column" data-settings-column="video" aria-labelledby="controlsHeading">
+      <div class="column-heading"><h2 id="controlsHeading">视频设置</h2></div>
+      <h3 class="column-subheading" id="sourceHeading">素材来源</h3>
+      <label class="field-label" for="materialMode">视频来源<select id="materialMode" class="control-input"><option value="stock">自动找公开素材</option><option value="local">只用本机素材</option><option value="mixed" selected>公开素材 + 本机素材</option></select></label>
+      <details class="column-details"><summary>选择公开素材来源</summary><div class="capability-box" id="sourceCapabilities"><span class="loading-copy">正在读取素材来源能力……</span></div><label class="check-line" for="allowGeneric"><input id="allowGeneric" type="checkbox"><span>地点素材不足时允许通用氛围素材</span></label></details>
+      <label class="field-label">素材拼接顺序<select id="footageOrder" class="control-input"><option value="sequential">顺序优选</option><option value="random">镜头内候选随机（旁白顺序不变）</option></select></label>
+      <label class="field-label">视频转场<select id="transition" class="control-input"><option value="cut" selected>直接切换</option><option value="fade">淡入淡出</option><option value="crossfade">交叉溶解</option></select></label>
+      <label class="field-label">视频比例<select id="aspectRatio" class="control-input"><option value="16:9" selected>横屏 16:9</option><option value="9:16">竖屏 9:16</option><option value="1:1">方形 1:1</option></select></label>
+      <label class="field-label">生成视频数量<select id="variants" class="control-input"><option value="1">1 个版本</option><option value="2">2 个版本</option><option value="3">3 个版本</option><option value="4">4 个版本</option><option value="5">5 个版本</option></select></label>
+      <details class="column-details"><summary>更多视频参数</summary>
+        <div class="settings-grid">
+          <label class="field-label">分辨率<select id="resolution" class="control-input"><option value="480">480p</option><option value="720" selected>720p</option><option value="1080">1080p</option></select></label>
+          <label class="field-label">帧率<select id="fps" class="control-input"><option value="24" selected>24 fps</option><option value="30">30 fps</option></select></label>
+          <label class="field-label">画面适配<select id="fit" class="control-input"><option value="crop" selected>裁切填满</option><option value="contain">完整保留</option></select></label>
+          <label class="field-label">转场秒数<input id="transitionSeconds" class="control-input" type="number" min="0.1" max="2" step="0.1" value="0.4"></label>
+          <label class="field-label">原素材音量<input id="sourceVolume" class="control-input" type="number" min="0" max="1" step="0.05" value="0"></label>
+          <label class="field-label">制作到哪一步<select id="stopAt" class="control-input"><option value="video">完整视频</option><option value="script">只保存当前文案</option><option value="terms">只整理当前镜头关键词</option><option value="materials">只准备素材</option><option value="audio">只制作旁白</option><option value="subtitle">制作旁白与字幕</option></select></label>
+        </div><label class="check-line" for="kenBurns"><input id="kenBurns" type="checkbox" checked><span>图片使用轻微推拉</span></label>
+      </details>
+      <details class="column-details"><summary>导入本机素材</summary>
+        <h3 class="column-subheading" id="uploadHeading">导入视频、图片或音频</h3>
+        <label class="field-label">音频用途<select id="uploadAudioRole" class="control-input"><option value="media">普通素材</option><option value="music">背景音乐</option><option value="voice">旁白</option></select></label>
+        <label class="upload-box" for="assetUpload"><input id="assetUpload" type="file" multiple accept="video/*,image/*,audio/*,.srt"><span class="upload-icon" aria-hidden="true">＋</span><b>选择本机文件</b><small>仅导入当前本机项目</small></label>
+        <p class="inline-status" id="uploadStatus" aria-live="polite">尚未导入文件。</p><div class="asset-summary" id="assetSummary">当前项目还没有可选本机素材。</div>
+      </details>
+    </section>
+
+    <section class="moneyprinter-column" data-settings-column="audio" aria-labelledby="voiceHeading">
+      <div class="column-heading"><h2 id="voiceHeading">音频设置</h2></div>
+      <label class="field-label" for="narrationMode">配音方式<select id="narrationMode" class="control-input"><option value="none">无旁白</option></select></label>
+      <label class="field-label" for="voiceSelect">配音声音<select id="voiceSelect" class="control-input" disabled><option value="Tingting">暂无可用本机声音</option></select></label>
+      <div class="settings-grid"><label class="field-label">配音音量<input id="narrationVolume" class="control-input" type="number" min="0" max="2" step="0.05" value="1"></label><label class="field-label">配音语速<input id="voiceRate" class="control-input" type="number" min="0.5" max="2" step="0.05" value="1"></label></div>
+      <label class="field-label" for="uploadedNarration">上传音频<select id="uploadedNarration" class="control-input"><option value="">不使用导入旁白</option></select></label>
+      <label class="check-line network-check" id="networkConfirmRow" for="networkConfirm" hidden><input id="networkConfirm" type="checkbox"><span>同意将本次脚本文本发送给 Edge 配音服务</span></label>
+      <div class="voice-preview-actions"><button class="quiet-button" id="voicePreviewButton" type="button" disabled>试听配音</button><select id="voicePreviewMode" class="control-input" aria-label="试听范围"><option value="sample">短句试听</option><option value="full">完整脚本试听</option></select><button class="quiet-button" id="reuseVoicePreviewButton" type="button" hidden>将完整试听用作旁白</button><audio id="voicePreviewAudio" controls hidden></audio></div>
+      <p class="inline-status" id="voiceStatus">旁白尚未配置。</p>
+      <div class="column-divider"></div>
+      <label class="field-label" for="bgmMode">背景音乐来源<select id="bgmMode" class="control-input"><option value="none" selected>暂不使用</option><option value="local">免费合成本机器乐</option><option value="elevenlabs">ElevenLabs Music · 付费生成</option><option value="selected">使用已导入音乐</option><option value="random">从已有配乐中选择</option></select></label>
+      <label class="field-label" id="bgmStyleField" for="bgmStyle" hidden>器乐风格<select id="bgmStyle" class="control-input"><option value="guofeng_ambient">国风氛围</option><option value="cinematic">电影铺底</option><option value="documentary">纪录片</option></select></label>
+      <label class="field-label" id="bgmPathField" for="bgmPath" hidden>已导入音乐<select id="bgmPath" class="control-input" disabled><option value="">暂无已导入音乐</option></select></label>
+      <div id="bgmElevenlabsFields" hidden>
+        <label class="field-label" for="bgmPrompt">音乐描述<textarea id="bgmPrompt" class="control-input" rows="4" maxlength="3100" placeholder="描述情绪、乐器和节奏，例如：温暖的江南器乐，古筝和柔和弦乐，渐进但为旁白留出空间"></textarea></label>
+        <label class="field-label" for="bgmModel">音乐模型<select id="bgmModel" class="control-input"><option value="music_v1">Eleven Music v1</option><option value="music_v2">Eleven Music v2</option><option value="music_v2_5">Eleven Music v2.5</option></select></label>
+        <button id="bgmPreflightButton" class="quiet-button" type="button">预检费用与发送文字</button>
+        <p id="bgmServiceStatus" class="inline-status" role="status">预检仅读取本机配置，不调用生成接口。</p>
+        <details id="bgmPromptPreviewField" hidden><summary>查看将发送给 ElevenLabs 的完整文字</summary><pre id="bgmPromptPreview" class="column-note" style="white-space:pre-wrap;overflow-wrap:anywhere"></pre></details>
+        <p class="column-note">只发送音乐描述、器乐要求与分段节奏；预览按计划时长排列，生成前按实测旁白时长调整分段时间。不上传视频、图片或音频。多个导出版本共用一首器乐。</p>
+        <label class="field-label" for="bgmBudget">本任务音乐预算（美元，按预估检查）<input id="bgmBudget" class="control-input" type="number" min="0.0001" step="0.01" placeholder="先预检再填写"></label>
+        <label class="check-line" for="bgmConfirmText"><input id="bgmConfirmText" type="checkbox"><span>同意发送预览中的文字及节奏信息</span></label>
+        <label class="check-line" for="bgmConfirmPaid"><input id="bgmConfirmPaid" type="checkbox"><span>授权本任务一次 ElevenLabs 音乐生成，失败后不自动重试</span></label>
+        <label class="check-line" for="bgmBillingLimit"><input id="bgmBillingLimit" type="checkbox"><span>已在 ElevenLabs 账户设置可接受的消费上限</span></label>
+      </div>
+      <label class="field-label">背景音乐音量<input id="bgmVolume" class="control-input" type="number" min="0" max="1" step="0.01" value="0.18"></label>
+      <label class="check-line" for="duckBgm"><input id="duckBgm" type="checkbox" checked><span>有旁白时自动降低配乐，停顿后平滑恢复</span></label>
+      <p class="column-note" id="bgmNote">本次视频不添加背景音乐。</p>
+    </section>
+
+    <section class="moneyprinter-column" data-settings-column="subtitle" aria-labelledby="subtitleHeading">
+      <div class="column-heading"><h2 id="subtitleHeading">字幕设置</h2></div>
+      <label class="check-line" for="subtitleEnabled"><input id="subtitleEnabled" type="checkbox" checked><span>启用字幕</span></label>
+      <label class="field-label">字幕字体<input id="subtitleFont" class="control-input" type="text" value="PingFang SC"></label>
+      <label class="field-label">字幕位置<select id="subtitlePosition" class="control-input"><option value="bottom" selected>底部</option><option value="center">中部</option><option value="top">顶部</option></select></label>
+      <div class="settings-grid">
+        <label class="field-label">字幕颜色<input id="subtitleColor" class="control-input" type="color" value="#ffffff"></label>
+        <label class="field-label">字幕大小<input id="subtitleFontSize" class="control-input" type="number" min="16" max="100" step="1" value="40"></label>
+        <label class="field-label">描边颜色<input id="subtitleOutlineColor" class="control-input" type="color" value="#000000"></label>
+        <label class="field-label">描边粗细<input id="subtitleOutlineWidth" class="control-input" type="number" min="0" max="8" step="0.1" value="2"></label>
+      </div>
+      <label class="check-line" for="subtitleBackground"><input id="subtitleBackground" type="checkbox"><span>启用字幕背景</span></label>
+      <label class="field-label" for="subtitlePath">已导入字幕<select id="subtitlePath" class="control-input"><option value="">按脚本生成字幕</option></select></label>
+      <p class="column-note">动态字幕与高级剪辑在顶部“设置”中，作为独立任务执行。</p>
+    </section>
+  </div>
+
+  <section class="moneyprinter-generation" aria-labelledby="actionHeading">
+    <h2 class="visually-hidden" id="actionHeading">开始制作</h2>
+    <div class="generation-secondary"><div class="secondary-buttons"><button class="secondary-action" id="collectButton" type="button" disabled>只找素材</button><button class="secondary-action" id="renderButton" type="button" disabled>导出当前选片</button></div><p id="actionHint" aria-live="polite">正在读取当前项目……</p></div>
+    <div class="generation-primary"><button class="primary-action" id="createButton" type="button" disabled>生成视频</button><button class="cancel-action" id="cancelButton" type="button" disabled>取消任务</button></div>
+  </section>
+  <section class="panel job-panel" id="currentJobPanel" hidden aria-labelledby="jobHeading">
+    <div class="panel-heading"><h2 id="jobHeading">当前任务</h2><span class="status-pill" id="jobStatus">尚未开始</span></div>
+    <div class="job-progress" aria-label="当前任务进度"><div class="progress-track"><i id="jobProgressBar"></i></div><b id="jobProgressValue">0%</b></div>
+    <p class="job-message" id="jobMessage">等待开始。</p><p class="column-note" id="materialCoverage" role="status" hidden></p><div class="missing-list" id="missingShots" hidden></div><ul id="jobWarnings" class="output-warning" hidden></ul><div class="output-area" id="outputArea" hidden></div>
+  </section>
+  <details class="storyboard-details" id="storyboardDetails"><summary><span>镜头与选片</span><span class="small-note" id="shotCountLabel">0 个镜头</span></summary><div class="shot-list" id="shotList" aria-live="polite"><div class="empty-state">正在读取分镜……</div></div></details>
+  <footer class="page-footer">素材来源、旁白、字幕与导出结果保留在当前项目中。</footer>
+</main>
+
+<dialog class="moneyprinter-dialog" id="taskManagerDialog" aria-labelledby="taskManagerDialogHeading">
+  <div class="dialog-heading"><h2 id="taskManagerDialogHeading">任务管理</h2><button class="quiet-button dialog-close" type="button" data-close-dialog="taskManagerDialog" aria-label="关闭任务管理">×</button></div>
+  <section class="history-panel" aria-labelledby="historyHeading"><div class="panel-heading"><h3 id="historyHeading">本项目任务记录</h3><span class="small-note" id="historyCount">0 条</span></div><p class="history-intro">查看记录或恢复设置不会重新提交任务。</p><div class="history-list" id="historyList"><div class="empty-state">尚无任务记录。</div></div></section>
+  <div class="dialog-footer"><button class="quiet-button" type="button" data-close-dialog="taskManagerDialog">取消</button></div>
+</dialog>
+<dialog class="moneyprinter-dialog" id="settingsDialog" aria-labelledby="settingsDialogHeading">
+  <div class="dialog-heading"><h2 id="settingsDialogHeading">设置</h2><button class="quiet-button dialog-close" type="button" data-close-dialog="settingsDialog" aria-label="关闭设置">×</button></div>
+  <div class="dialog-content">
+    <details class="advanced-settings" id="advancedSettings" open><summary>设置导入与导出</summary><p class="details-intro">导入只更新可支持的本页参数，不会提交制作任务；不接受密钥或上游凭据备份。</p><div class="settings-actions"><button class="quiet-button" id="exportSettingsButton" type="button">导出本页设置</button><label class="quiet-button file-button" for="importSettingsInput">导入设置 JSON<input id="importSettingsInput" type="file" accept="application/json,.json"></label></div><p class="security-note">高级剪辑参数请使用下面的独立扩展任务，不会自动串入主流程。</p><div id="settingsImportReport" class="batch-results" aria-live="polite"></div></details>
+    <details class="batch-settings" id="batchSettings"><summary>批量制作清单</summary><p class="details-intro">导入 1–100 条 JSON 或 JSONL 任务，先检查再确认执行。公开素材源需要联网，Edge 会发送脚本文本；核对后在对应任务填写 confirm_network: true。</p><div class="settings-actions"><button class="quiet-button" id="exportBatchTemplateButton" type="button">导出当前请求模板</button><label class="quiet-button file-button" for="importBatchInput">导入批量清单<input id="importBatchInput" type="file" accept=".json,.jsonl,application/json"></label></div><textarea id="batchManifest" class="control-input batch-manifest" rows="5" aria-label="批量任务清单" placeholder="JSON 数组，或每行一个 JSON 请求；不超过 1 MiB。"></textarea><button class="quiet-button" id="batchPreflightButton" type="button">检查批量清单</button><div id="batchPreflightResults" class="batch-results" aria-live="polite"></div><label class="check-line" for="batchConfirm"><input id="batchConfirm" type="checkbox"><span>确认按检查通过的清单执行；所选联网来源与在线配音会访问外部服务</span></label><button class="secondary-action" id="batchSubmitButton" type="button" disabled>提交检查通过的批次</button><div id="batchCurrent" class="batch-results" aria-live="polite"></div><button class="cancel-action" id="batchCancelButton" type="button" hidden>取消当前批次</button><label class="field-label" for="batchHistory">本项目批次记录<select id="batchHistory" class="control-input"><option value="">尚无批次记录</option></select></label></details>
+    <details class="extended-services" id="extendedServices"><summary>扩展 AI 服务与高级剪辑</summary><p>脚本、在线配音、AI 素材、高级剪辑与发布是独立任务。先预检，确认后执行，不自动开始。</p><div class="extended-services-status" id="extendedServicesStatus">等待能力清单。</div></details>
+  </div><div class="dialog-footer"><button class="quiet-button" type="button" data-close-dialog="settingsDialog">取消</button></div>
+</dialog>
+<noscript><p class="noscript-message">需要启用 JavaScript 才能使用视频制作工作台。</p></noscript>
+<script type="module" src="/ui/footage.js?v=20261021-coverage1"></script>
+</body>
+</html>

@@ -1,0 +1,27 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {promises as fs} from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import {randomUUID,createHash} from 'node:crypto';
+import {makeProject} from '../lib/model.mjs';
+import {atomicJson,storeAsset} from '../lib/workspace.mjs';
+import {localServer} from './helpers/library-backup-server.mjs';
+const png=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jGbcAAAAASUVORK5CYII=','base64');
+const hash=b=>createHash('sha256').update(b).digest('hex');
+async function fixture(){const data=await fs.mkdtemp(path.join(os.tmpdir(),'jc-history-api-')),p=makeProject('留痕 API 验收'),asset=await storeAsset(data,png,{name:'原始图片.png',type:'image/png'});p.assets=[asset];p.nodes[0].assetId=asset.id;await atomicJson(path.join(data,'projects',p.id,'project.json'),p);await atomicJson(path.join(data,'projects',p.id,'history','0-original.json'),p);await atomicJson(path.join(data,'jobs','done-one.json'),{id:'done-one',kind:'image-api',projectId:p.id,name:'已完成未回填任务',status:'completed',assets:[asset],input:{model:'local-test',prompt:'只在本机的虚构文字',referenceIds:[]},createdAt:p.createdAt});return{data,p};}
+test('真实本机HTTP完成留痕导出、下载、预检、新工程恢复、只读查阅；重试不增任务',async t=>{
+ const source=await fixture(),targetData=await fs.mkdtemp(path.join(os.tmpdir(),'jc-history-api-target-')),before=await fs.readFile(path.join(source.data,'projects',source.p.id,'project.json')),s=await localServer(source.data),d=await localServer(targetData);t.after(async()=>{await Promise.all([s.stop(),d.stop()]);});
+ const health=await s.api('/api/health');assert.equal(health.capabilities.taskHistoryArchive,true);assert.equal(health.capabilities.nativeCascadePromptBatch,true);assert.equal(health.capabilities.nativeCascadeUpscale,true);assert.equal(health.capabilities.largeRenderAssetImport,true);
+ const requestId=randomUUID(),out=await s.api(`/api/projects/${source.p.id}/task-history-archive`,'POST',{revision:0,requestId});assert.equal(out.complete,true);assert.equal(out.jobs,1);assert.equal(out.revisions,1);
+ assert.equal((await s.api(`/api/projects/${source.p.id}/task-history-archive`,'POST',{revision:0,requestId})).id,out.id);
+ const head=await fetch(s.base+out.url,{method:'HEAD'});assert.equal(head.status,200);assert.equal(head.headers.get('x-content-type-options'),'nosniff');assert.match(head.headers.get('content-disposition'),/attachment/);assert.equal(head.headers.get('content-type'),'application/octet-stream');
+ const response=await fetch(s.base+out.url),bytes=Buffer.from(await response.arrayBuffer());assert.equal(bytes.length,Number(head.headers.get('content-length')));const range=await fetch(s.base+out.url,{headers:{Range:'bytes=0-18'}});assert.equal(range.status,206);assert.deepEqual(Buffer.from(await range.arrayBuffer()),bytes.subarray(0,19));
+ const checked=await fetch(d.base+'/api/task-history-archives/inspect',{method:'POST',headers:{'Content-Type':'application/octet-stream'},body:bytes}),preview=await checked.json();assert.equal(checked.status,201,preview.error);assert.equal(preview.complete,true);assert.deepEqual(await d.api('/api/projects'),[]);assert.equal((await d.api(`/api/task-history-archives/imports/${preview.id}/preview`)).previewDigest,preview.previewDigest);
+ const result=await d.api(`/api/task-history-archives/imports/${preview.id}/import`,'POST',{previewDigest:preview.previewDigest});assert.notEqual(result.projectId,source.p.id);const restored=await d.api('/api/projects/'+result.projectId);assert.equal(restored.runs.length,0);assert.equal(restored.assets.length,1);assert.notEqual(restored.assets[0].id,source.p.assets[0].id);
+ const again=await d.api(`/api/task-history-archives/imports/${preview.id}/import`,'POST',{previewDigest:preview.previewDigest});assert.equal(again.projectId,result.projectId);assert.equal((await d.api('/api/projects')).length,1);assert.deepEqual(await fs.readdir(path.join(targetData,'jobs')),[]);
+ const archives=await d.api('/api/task-history-archives?projectId='+result.projectId);assert.equal(archives.length,1);const record=await d.api(`/api/task-history-archives/${result.id}?projectId=${result.projectId}`);assert.equal(record.readOnly,true);assert.equal(record.canResume,false);assert.equal(record.canApply,false);assert.deepEqual(record.manifest.jobs[0].input,{model:'local-test',prompt:'只在本机的虚构文字',referenceIds:[]});
+ const item=record.manifest.files.find(f=>f.kind==='asset'),file=await fetch(`${d.base}/api/task-history-archives/${result.id}/files/${item.id}?projectId=${result.projectId}`);assert.equal(file.status,200);assert.equal(file.headers.get('content-type'),'application/octet-stream');assert.match(file.headers.get('content-disposition'),/attachment/);assert.equal(file.headers.get('x-content-type-options'),'nosniff');assert.equal(hash(Buffer.from(await file.arrayBuffer())),item.sha256);
+ const denied=await fetch(`${d.base}/api/task-history-archives/${result.id}/files/${item.id}?projectId=other-project`);assert.equal(denied.status,403);assert.match((await denied.json()).error,/不属于/);
+ const conflict=await fetch(s.base+`/api/projects/${source.p.id}/task-history-archive`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({revision:99})});assert.equal(conflict.status,409);assert.deepEqual(await fs.readFile(path.join(source.data,'projects',source.p.id,'project.json')),before);
+});

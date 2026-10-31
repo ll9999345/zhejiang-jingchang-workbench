@@ -1,0 +1,35 @@
+{
+  "manifest_version": 3,
+  "name": "镜场网页素材采集",
+  "description": "扫描当前网页的图片和视频，确认后导入镜场本机素材库。",
+  "version": "0.8.0",
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "镜场网页素材采集"
+  },
+  "side_panel": {
+    "default_path": "popup.html"
+  },
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "storage",
+    "downloads",
+    "sidePanel"
+  ],
+  "optional_permissions": [
+    "webRequest"
+  ],
+  "host_permissions": [
+    "http://127.0.0.1/*",
+    "http://localhost/*"
+  ],
+  "optional_host_permissions": [
+    "http://*/*",
+    "https://*/*"
+  ]
+}

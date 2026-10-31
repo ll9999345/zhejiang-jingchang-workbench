@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" type="image/svg+xml" href="/ui/favicon.svg?v=20260930">
+<title>浙江文旅 · 创作工作台</title>
+<script>
+  // 直接双击源码文件时，跳回同源工作台；否则 CSS、模块脚本和后端接口
+  // 会脱离服务入口，浏览器只能显示没有样式的静态 HTML。
+  if (window.location.protocol === "file:") {
+    window.location.replace("http://localhost:4750/model");
+  }
+</script>
+<link rel="stylesheet" href="/ui/model.css">
+<link rel="stylesheet" href="/ui/studio.css?v=20261001a">
+<link rel="stylesheet" href="/ui/theme.css?v=20260930e">
+<script defer src="/ui/vendor/motion-12.23.24.js"></script>
+<script defer src="/ui/studio.js?v=20261002canvas"></script>
+<link rel="stylesheet" href="/ui/workbench-interactions.css?v=20261001">
+<script defer src="/ui/workbench-interactions.js?v=20261001"></script>
+</head>
+<body data-studio-page="model">
+<main class="shell">
+  <header class="hero">
+    <div class="brand-mark">浙</div>
+    <div>
+      <p class="eyebrow">OPENMONTAGE · CREATIVE STUDIO</p>
+      <h1>浙江文旅创作工作台</h1>
+      <p class="lede">从方案、分镜到视频与后期，按当前项目的进度继续创作。</p>
+    </div>
+    <a class="backlot-link" href="/">返回项目库</a>
+  </header>
+
+  <nav class="workspace-nav" aria-label="制作阶段">
+    <button disabled type="button" data-workspace-view="plan" aria-current="step"><span>1</span>创意与脚本</button>
+    <button disabled type="button" data-workspace-view="storyboard"><span>2</span>分镜</button>
+    <button disabled type="button" data-workspace-view="video"><span>3</span>视频生成</button>
+    <button disabled type="button" data-workspace-view="edit"><span>4</span>后期制作</button>
+    <button disabled type="button" data-workspace-view="delivery"><span>5</span>验收与导出</button>
+    <button disabled type="button" data-workspace-view="tools" class="workspace-tools-tab">工具与设置</button>
+  </nav>
+  <div class="workspace-context"><h1 id="workspaceHeading">创意与脚本</h1><span id="workspaceHint">先确定主题和创意，再逐镜安排画面。</span></div>
+
+  <section class="entry-context" id="entryContext" hidden aria-live="polite">
+    <div class="entry-context-head">
+      <div>
+        <p class="eyebrow" id="entryContextEyebrow">CREATOR ENTRY / DRAFT HANDOFF</p>
+        <h2 id="entryContextTitle">一句话导演</h2>
+      </div>
+      <span class="entry-mode-pill" id="entryContextBadge">已接收入口</span>
+    </div>
+    <p id="entryContextDescription" class="entry-context-description"></p>
+    <p id="entryBrief" class="entry-brief" hidden></p>
+    <div id="entrySourceMeta" class="entry-source-meta"></div>
+    <pre id="entrySourcePreview" class="entry-source-preview" hidden></pre>
+    <div class="entry-context-actions">
+      <button type="button" id="editProjectBrief" class="secondary compact">查看／修改项目需求</button>
+      <a href="/create/guided" id="changeEntryLink">更换制作入口</a>
+      <span id="entryContextNote">已沿用入口内容；下面继续选择方案、检查分镜。</span>
+    </div>
+  </section>
+
+  <section class="grid" id="modelGrid">
+    <form class="panel form-panel" id="requestForm">
+      <details id="projectRequestDetails" open>
+        <summary id="projectRequestSummary">创作需求 · 点击收起</summary>
+      <div class="panel-heading">
+        <div>
+          <p class="eyebrow">STEP 1 · INPUT</p>
+          <h2>描述你要生成的片段</h2>
+        </div>
+        <span class="safe-badge">默认免费估算</span>
+      </div>
+
+      <label for="prompt">画面提示词</label>
+      <textarea id="prompt" name="prompt" required minlength="2" placeholder="例如：南北湖日落时分，云雾沿山脊缓慢流动，镜头从湖面低空推进到远处古城与群山，电影级写实风景，无文字无水印"></textarea>
+
+      <label>导演工作流模式
+        <select id="workflowMode" name="workflow_mode">
+          <option value="quality" selected>质量优先 · 每阶段展示并确认</option>
+          <option value="speed">速度优先 · 系统评分选优并自动推进</option>
+        </select>
+      </label>
+      <p id="workflowModeHint" class="mode-hint">质量优先会先展示三套差异化方案；你选定后再生成分镜，确认分镜后才进入付费视频任务。</p>
+
+      <div class="field-grid">
+        <label>模型档位
+          <select id="modelVariant" name="model_variant">
+            <option value="mini">Seedance 2.0 mini · 低成本验证</option>
+            <option value="standard">Seedance 2.0 · 标准</option>
+          </select>
+        </label>
+        <label>生成方式
+          <select id="operation" name="operation">
+            <option value="text_to_video">文生视频</option>
+          </select>
+        </label>
+        <label>片段时长
+          <select id="duration" name="duration">
+            <option value="4">4 秒</option>
+            <option value="5" selected>5 秒</option>
+            <option value="6">6 秒</option>
+            <option value="8">8 秒</option>
+          </select>
+        </label>
+        <label>画幅
+          <select id="aspectRatio" name="aspect_ratio">
+            <option value="9:16" selected>9:16 · 竖屏</option>
+            <option value="16:9">16:9 · 横屏</option>
+            <option value="1:1">1:1 · 方形</option>
+          </select>
+        </label>
+        <label>分辨率
+          <select id="resolution" name="resolution">
+            <option value="480p" selected>480p · 先验证通路</option>
+            <option value="720p">720p · 更高质量</option>
+          </select>
+        </label>
+        <label>本次费用上限（元）
+          <input id="maxCost" name="max_cost_cny" type="number" min="0.01" max="50" step="0.01" value="50" required>
+        </label>
+      </div>
+
+      <label class="check-row"><input id="generateAudio" type="checkbox"> <span>允许模型生成原生音频（默认关闭；BGM 仍在后置模块）</span></label>
+      <div class="actions">
+        <button class="primary" type="submit">免费估算（不会生成）</button>
+        <button class="secondary" type="button" id="preparePaid" disabled>进入付费二次确认</button>
+      </div>
+      <p class="microcopy">先完成创意与分镜质量门。付费按钮只会先建立一次性确认单；真正提交必须再次点击确认，授权密钥只留在本机服务端。</p>
+      </details>
+      <section id="speedProgressPanel" class="speed-progress-panel" hidden aria-live="polite">
+        <div class="speed-progress-head">
+          <div>
+            <p class="eyebrow">SPEED RUN / AUTO PILOT</p>
+            <h3>速度优先 · 自动制作中</h3>
+          </div>
+          <span id="speedProgressBadge" class="workflow-badge">准备中</span>
+        </div>
+        <p id="speedProgressMessage" class="workflow-note">系统会自动完成估算、三案评分、分镜规划和进入视频任务前的检查。</p>
+        <ol class="speed-progress-steps" aria-label="速度优先自动制作进度">
+          <li id="speedStepEstimate"><span>1</span><b>免费估算</b><small>不扣费</small></li>
+          <li id="speedStepCandidates"><span>2</span><b>三案评分</b><small>自动选优</small></li>
+          <li id="speedStepStoryboard"><span>3</span><b>分镜规划</b><small>自动承接</small></li>
+          <li id="speedStepVideo"><span>4</span><b>视频任务</b><small>需确认</small></li>
+        </ol>
+        <div class="speed-progress-actions">
+          <button class="secondary compact" type="button" id="speedViewDetails">展开详细流程</button>
+          <button class="secondary compact" type="button" id="speedExitFocus">返回双栏设置</button>
+        </div>
+      </section>
+    </form>
+
+    <aside class="panel result-panel" id="resultPanel" aria-live="polite">
+      <details class="runtime-details"><summary>项目状态与运行详情 <span id="statusBadge" class="status neutral">尚未估算</span></summary>
+      <div id="statusMessage" class="status-message">输入创作需求后即可免费规划。</div>
+      <div id="qualityFocusToolbar" class="focus-toolbar" hidden>
+        <div>
+          <p class="eyebrow">QUALITY WORKSPACE / STORYBOARD REVIEW</p>
+          <strong>质量优先 · 分镜规划</strong>
+          <span>逐镜检查画面、运镜与共享边界帧，确认后才进入视频生成。</span>
+        </div>
+        <button class="secondary compact" type="button" id="qualityExitFocus">返回参数设置</button>
+      </div>
+        <div class="workflow-project-row">
+          <span id="workflowProjectStatus">免费规划尚未保存为项目。</span>
+          <a id="workflowProjectLink" class="project-link" href="#" hidden>打开本次独立项目草案</a>
+          <button id="workflowOpenMedia" class="secondary compact" type="button" hidden>进入后期制作</button>
+        </div>
+      </details>
+      <div class="workflow-panel" id="workflowPanel" hidden>
+        <div class="workflow-steps legacy-progress" aria-hidden="true">
+          <span class="workflow-step active" id="workflowStepEstimate">1 方案</span>
+          <span class="workflow-step" id="workflowStepCandidates">2 分镜</span>
+          <span class="workflow-step" id="workflowStepStoryboard">3 视频生成</span>
+          <span class="workflow-step" id="workflowStepVideo">4 质检</span>
+        </div>
+        <section id="creativeSection" hidden>
+          <div class="workflow-section-head">
+            <div>
+              <p class="eyebrow">CREATIVE GATE</p>
+              <h3>三案创意与选优</h3>
+            </div>
+            <span id="creativeModeBadge" class="workflow-badge">等待生成</span>
+          </div>
+          <p id="creativeStatus" class="workflow-note">三案是免费规划，不会调用视频模型。</p>
+          <div class="fact-gate" id="factGate">
+            <div class="fact-gate-head"><b>事实核验与来源分层</b><span id="factGateBadge">待补来源</span></div>
+            <p id="factGateText">系统不会把未经核验的地点、年代或数据写成事实；目前先建立核验清单，正式交付前需要补充来源。</p>
+            <div id="factChecklist" class="fact-checklist"></div>
+          </div>
+          <div id="candidateGrid" class="candidate-grid"></div>
+          <p class="media-hint">选定方案后会自动准备关键词并免费检索候选素材；不会自动替换分镜或调用付费模型。</p>
+          <button type="button" class="secondary" data-open-stock>查看方案素材 / 重新检索</button>
+          <button type="button" class="primary" data-open-footage>用真实素材自动成片 →</button>
+          <p class="stock-progress" role="status"></p>
+          <div class="workflow-actions">
+            <button class="secondary" type="button" id="generateCandidates">生成三案（免费）</button>
+            <button class="primary" type="button" id="continueStoryboard" disabled>确认方案，进入分镜</button>
+          </div>
+        </section>
+        <section id="storyboardSection" hidden>
+          <div class="workflow-section-head">
+            <div>
+              <p class="eyebrow">STORYBOARD GATE</p>
+              <h3>分镜与连续性检查</h3>
+            </div>
+            <span id="storyboardModeBadge" class="workflow-badge">等待生成</span>
+          </div>
+          <p id="storyboardStatus" class="workflow-note">分镜会保留景别差异、运镜重点和共享边界帧。</p>
+          <div class="stock-shortcut"><span>想用真实拍摄的画面？按镜头关键词查找视频或图片。</span><button type="button" class="secondary" data-open-stock>找真实素材</button></div>
+          <div class="stock-shortcut"><span>沿用这些分镜，自动找实拍、配音、剪辑和加字幕。</span><button type="button" class="primary" data-open-footage>真实素材自动成片</button></div>
+          <div id="storyboardGrid" class="storyboard-grid"></div>
+          <div class="storyboard-image-gate" id="storyboardImageGate">
+            <div class="workflow-section-head">
+              <div>
+                <p class="eyebrow">IMAGE PREVIEW / FREE CHECKPOINT</p>
+                <h4>分镜图预览</h4>
+              </div>
+              <span id="storyboardImageBadge" class="workflow-badge">尚未生成</span>
+            </div>
+            <p id="storyboardImageStatus" class="workflow-note">先检查并修改分镜提示词，再生成分镜图；所有图片显示并确认后才能进入视频生成。</p>
+            <div id="storyboardImageHeartbeat" class="heartbeat storyboard-image-heartbeat" hidden aria-live="polite">
+              <div class="heartbeat-head">
+                <span class="heartbeat-dot" aria-hidden="true"></span>
+                <b id="storyboardImageHeartbeatLabel">等待图片生成</b>
+                <span id="storyboardImageHeartbeatElapsed">00:00</span>
+              </div>
+              <div class="heartbeat-track"><i id="storyboardImageHeartbeatProgress"></i></div>
+              <p id="storyboardImageHeartbeatDetail">只有点击确认后才会开始生成。</p>
+            </div>
+            <div class="workflow-actions">
+              <button class="secondary" type="button" id="generateStoryboardImages">生成分镜图</button>
+            </div>
+          </div>
+          <div class="workflow-actions">
+            <button class="primary" type="button" id="approveStoryboard" disabled>确认分镜，进入视频生成</button>
+          </div>
+        </section>
+        <section id="qualityVideoSection" class="quality-stage-section" hidden>
+          <div class="workflow-section-head">
+            <div>
+              <p class="eyebrow">VIDEO GATE</p>
+              <h3>视频生成</h3>
+            </div>
+            <span id="qualityVideoBadge" class="workflow-badge">等待确认</span>
+          </div>
+          <p id="qualityVideoStatus" class="workflow-note">分镜确认后才会解锁视频任务。先检查模型、分辨率和费用，再进行一次明确的付费确认。</p>
+          <div class="stock-shortcut"><span>也可以先查找现成素材，再到后期制作中剪辑合成。</span><button type="button" class="secondary" data-open-stock>找真实素材</button></div>
+          <div class="stock-shortcut"><span>素材成片：免费素材搜索、本地剪辑、多尺寸导出。</span><button type="button" class="primary" data-open-footage>进入真实素材自动成片</button></div>
+          <div class="quality-video-summary" id="qualityVideoSummary">
+            <span>首尾帧模式</span><b>等待分镜确认</b>
+            <span>费用状态</span><b>尚未提交</b>
+          </div>
+          <div class="video-tuning-grid" aria-label="视频生成参数">
+            <label>生视频模型
+              <select id="qualityVideoModel">
+                <option value="mini">Seedance 2.0 mini · 低成本验证</option>
+                <option value="standard">Seedance 2.0 · 标准</option>
+              </select>
+            </label>
+            <label>生成方式
+              <select id="qualityVideoOperation">
+                <option value="image_to_video" selected>图生视频 · 使用已确认分镜图</option>
+              </select>
+            </label>
+            <div class="quality-video-duration-lock" id="qualityVideoDurationLock">
+              <span>分镜总时长（已锁定）</span>
+              <strong id="qualityVideoStoryboardDuration">等待分镜确认</strong>
+              <small>每个镜头的视频时长严格采用分镜阶段的标注；这里不能另行选择。</small>
+            </div>
+            <label>清晰度
+              <select id="qualityVideoResolution">
+                <option value="480p" selected>480p · 先验证通路</option>
+                <option value="720p">720p · 更高质量</option>
+              </select>
+            </label>
+            <label>画幅
+              <select id="qualityVideoAspect">
+                <option value="9:16" selected>9:16 · 竖屏</option>
+                <option value="16:9">16:9 · 横屏</option>
+                <option value="1:1">1:1 · 方形</option>
+              </select>
+            </label>
+            <label>本次费用上限（元）
+              <input id="qualityVideoMaxCost" type="number" min="0.01" max="50" step="0.01" value="50">
+            </label>
+            <label class="check-row video-tuning-audio"><input id="qualityVideoAudio" type="checkbox"> <span>允许模型生成原生音频（默认关闭；BGM 仍后置）</span></label>
+          </div>
+          <input id="qualityVideoDuration" type="hidden" value="5" aria-hidden="true">
+          <div id="qualityVideoShotPlan" class="quality-video-shot-plan" aria-live="polite"></div>
+          <div class="quality-video-estimate" aria-live="polite">
+            <div>
+              <span>本阶段预估费用</span>
+              <strong id="qualityVideoEstimatedCost">尚未估算</strong>
+            </div>
+            <span id="qualityVideoEstimateStatus" class="quality-video-estimate-status">修改参数后请先点击免费估算</span>
+          </div>
+          <div class="workflow-actions">
+            <button class="secondary" type="button" id="qualityVideoEstimate">免费估算本阶段（不会生成）</button>
+            <button class="primary" type="button" id="qualityPreparePaid" disabled>进入付费二次确认</button>
+          </div>
+          <p class="microcopy">点击后只建立一次性确认单；真正调用视频模型仍需在弹窗中再次确认。</p>
+        </section>
+        <section id="qualityReviewSection" class="quality-stage-section" hidden>
+          <div class="workflow-section-head">
+            <div>
+              <p class="eyebrow">JUDGE REVIEW / EVIDENCE</p>
+              <h3>质检与裁判式评分</h3>
+            </div>
+            <span id="qualityReviewBadge" class="workflow-badge">待实测</span>
+          </div>
+          <p id="qualityReviewStatus" class="workflow-note">视频完成后才进入这一关。下面的四项权重是比赛口径，分数只有绑定真实视频、抽帧和质检报告后才会显示。</p>
+          <div class="quality-rubric-note">系统预评估 ≠ 外部评委终审；未完成真实证据检查时不填充虚假分数。</div>
+          <div id="qualityReviewGrid" class="quality-review-grid">
+            <div class="quality-review-row"><span>场景完整性与应用价值</span><b>25%</b><em>待实测</em></div>
+            <div class="quality-review-row"><span>AIGC 生成效果</span><b>30%</b><em>待实测</em></div>
+            <div class="quality-review-row"><span>技术方案与创新性</span><b>25%</b><em>待实测</em></div>
+            <div class="quality-review-row"><span>系统体验与作品完整度</span><b>20%</b><em>待实测</em></div>
+          </div>
+          <div class="workflow-actions">
+            <a id="qualityReviewProjectLink" class="project-link" href="#" hidden>打开独立项目查看质检证据</a>
+            <button class="secondary" type="button" id="qualityOpenMedia" hidden>进入后期与技术质检</button>
+          </div>
+        </section>
+      </div>
+      <dl class="receipt" id="receipt" hidden>
+        <div><dt>预估费用</dt><dd id="estimatedCost">—</dd></div>
+        <div><dt>模型</dt><dd id="estimatedModel">—</dd></div>
+        <div><dt>调用方式</dt><dd id="estimatedAction">dry-run</dd></div>
+        <div><dt>预算判断</dt><dd id="budgetCheck">—</dd></div>
+      </dl>
+      <pre id="rawEstimate" class="raw" hidden></pre>
+      <div id="taskActions" class="task-actions" hidden>
+        <div class="task-id-row"><span>当前任务</span><code id="taskId">—</code></div>
+        <div id="heartbeat" class="heartbeat" hidden>
+          <div class="heartbeat-head"><span class="heartbeat-dot"></span><b id="heartbeatLabel">等待 provider 回执</b><span id="heartbeatElapsed">00:00</span></div>
+          <div class="heartbeat-track"><i id="heartbeatProgress"></i></div>
+          <p id="heartbeatDetail">提交后会自动轮询任务状态；页面刷新后也会尝试恢复。</p>
+        </div>
+        <div class="task-buttons">
+          <button class="secondary" type="button" id="queryTask">刷新任务状态</button>
+          <button class="danger-outline" type="button" id="cancelTask">取消远程任务</button>
+        </div>
+        <a id="projectLink" class="project-link" href="#" hidden>打开本次独立 Backlot 项目</a>
+        <a id="videoLink" class="video-link" href="#" target="_blank" rel="noreferrer" hidden>打开已完成的视频文件</a>
+        <span id="videoPending" class="video-pending">视频完成并通过回执后，这里才会出现可下载文件。</span>
+        <section id="videoPreview" class="video-preview" hidden aria-live="polite">
+          <div class="video-preview-head">
+            <div>
+              <p class="eyebrow">VIDEO PREVIEW</p>
+              <h3>已完成视频预览</h3>
+            </div>
+            <span id="videoPreviewBadge" class="workflow-badge">可播放</span>
+          </div>
+          <p id="videoPreviewHint" class="workflow-note">视频已返回，可直接在此播放；右侧链接仍可打开原始文件。</p>
+          <div id="videoPreviewList" class="video-preview-list"></div>
+        </section>
+      </div>
+      <section id="mediaPipeline" class="media-pipeline" hidden aria-live="polite">
+        <div class="workflow-section-head">
+          <div>
+            <p class="eyebrow">OPENMONTAGE MEDIA STAGES</p>
+            <h3 id="mediaWorkspaceTitle">后期制作</h3>
+          </div>
+          <button class="secondary compact" type="button" id="refreshMediaCapabilities">刷新能力</button>
+        </div>
+        <p id="mediaWorkspaceNote" class="workflow-note">先准备旁白和字幕，再剪辑画面、添加音乐。每一步都保留原素材，完成后可在下方预览。</p>
+        <div class="settings-navigation">
+          <nav class="media-recommended-path settings-tabs" aria-label="制作设置" role="tablist">
+            <a id="settingsTabCopy" href="#mediaNarrationCard" data-settings-tab="copy" role="tab" aria-controls="mediaNarrationCard" aria-selected="true">文案</a>
+            <a id="settingsTabVideo" href="#mediaVideoComposeCard" data-settings-tab="video" role="tab" aria-controls="mediaVideoComposeCard" aria-selected="false" tabindex="-1">视频</a>
+            <a id="settingsTabAudio" href="#mediaVoiceCard" data-settings-tab="audio" role="tab" aria-controls="mediaVoiceCard mediaMusicCard mediaAudioMixCard mediaAudioEnhanceCard" aria-selected="false" tabindex="-1">音频</a>
+            <a id="settingsTabSubtitle" href="#mediaSubtitleCard" data-settings-tab="subtitle" role="tab" aria-controls="mediaSubtitleCard" aria-selected="false" tabindex="-1">字幕</a>
+          </nav>
+          <button disabled type="button" class="secondary compact" data-workspace-view="delivery">去验收与导出 →</button>
+        </div>
+        <div class="media-flow-toolbar">
+          <span>先完成常用步骤，需要时再展开精细调整。</span>
+          <button class="secondary compact" type="button" id="toggleAdvancedMedia" aria-controls="mediaGrid" aria-expanded="false">显示高级工具</button>
+        </div>
+        <div class="media-project-row">
+          <label class="workspace-project-select">当前项目<select id="workspaceProjectSelect"><option value="">正在读取项目…</option></select></label>
+          <details class="project-manual"><summary>按项目编号载入 / 刷新</summary>
+          <div class="media-project-input">
+            <label>当前项目 ID
+              <input id="mediaProjectId" type="text" placeholder="生成任务后自动填充，例如 demo-project">
+            </label>
+            <button class="secondary compact" type="button" id="loadMediaProject">载入项目</button>
+          </div>
+          </details>
+          <div id="mediaCapabilities" class="media-capability-summary" hidden>能力检查尚未执行</div>
+          <div id="mediaLoadStatus" class="media-load-status" aria-live="polite">输入项目 ID 后可读取项目脚本、分镜、媒体和质检产物。</div>
+        </div>
+        <details id="workspaceDiagnostics" class="workspace-diagnostics">
+        <summary>查看运行环境与详细工具目录</summary>
+        <div id="mediaCapabilityList" class="media-capability-list"></div>
+        <div class="tool-catalog-toolbar">
+          <div>
+            <strong>OpenMontage 工具目录</strong>
+            <span id="openmontageToolCatalogSummary">尚未读取；点击后查看已接入、降级和未配置能力。</span>
+          </div>
+          <div class="tool-catalog-actions">
+            <button class="secondary compact" type="button" id="openmontageToolCatalogButton">读取工具目录</button>
+            <button class="secondary compact" type="button" id="openmontagePipelineCatalogButton">查看管线目录</button>
+          </div>
+        </div>
+        <section id="openmontageToolCatalogPanel" class="tool-catalog-panel" hidden aria-live="polite">
+          <div id="openmontageToolCatalogMeta" class="tool-catalog-meta"></div>
+          <div id="openmontageToolCatalogGrid" class="tool-catalog-grid"></div>
+        </section>
+        <section id="openmontagePipelineCatalogPanel" class="tool-catalog-panel pipeline-catalog-panel" hidden aria-live="polite">
+          <div id="openmontagePipelineCatalogMeta" class="tool-catalog-meta"></div>
+          <div id="openmontagePipelineCatalogGrid" class="pipeline-catalog-grid"></div>
+        </section>
+        </details>
+        <label id="workspaceToolPicker" class="workspace-tool-picker" hidden>选择要使用的工具
+          <select id="workspaceToolSelect"></select>
+          <span class="media-hint">一次只展开一个工具。先载入项目，再选择素材或填写所需内容。</span>
+        </label>
+        <p id="mediaNarrationStatus" class="media-inline-status" aria-live="polite">载入项目后会自动带入可用成片；只有明确标记为旁白的脚本文本才会自动填入分段框。</p>
+        <div id="mediaGrid" class="media-grid">
+          <article id="localToolsCard" class="media-card media-card-wide" data-workspace-group="tools">
+            <div class="media-card-head"><h4>离线抠图、人物增强与动画</h4><span class="media-tag">本机免费 · 保留原素材</span></div>
+            <p class="media-hint">先检查素材和运行环境，再点击生成。每次保存为新文件；较长视频和三维渲染可能需要几分钟。</p>
+            <label>功能<select id="localToolOperation">
+              <option value="bg_remove">图片抠图 · 去除背景，输出透明 PNG</option>
+              <option value="eye_enhance">人物眼部增强 · 视频</option>
+              <option value="manim_title">Manim · 中文标题动画</option>
+              <option value="manim_flow">Manim · 三至四步流程动画</option>
+              <option value="blender_title">Blender · 三维标题图片</option>
+              <option value="hyperframes_render">HyperFrames · 渲染已有动画工程</option>
+            </select></label>
+            <label data-local-field="input">素材路径（当前项目内）<input id="localToolInput" placeholder="assets/images/source.png"></label>
+            <label data-local-field="workspace" hidden>动画工程文件夹（当前项目内）<input id="localToolWorkspace" value="hyperframes"></label>
+            <p data-local-field="workspace" class="media-hint" hidden>工程需包含 index.html。仅渲染你信任的已有工程；若工程引用网络资源，渲染时可能访问这些资源。</p>
+            <label data-local-field="title" hidden>标题<input id="localToolTitle" value="浙江文旅" maxlength="160"></label>
+            <label data-local-field="title" hidden>副标题（可选）<input id="localToolSubtitle" placeholder="诗画江南，山水之间" maxlength="240"></label>
+            <label data-local-field="flow" hidden>流程步骤（每行一个，最多四个）<textarea id="localToolLabels" rows="3">发现美景
+了解故事
+出发体验</textarea></label>
+            <div class="field-grid media-fields" data-local-field="animation" hidden>
+              <label>时长（秒）<input id="localToolDuration" type="number" min="1" max="60" value="4"></label>
+              <label>画幅<select id="localToolAspect"><option value="landscape">横屏 16:9</option><option value="portrait">竖屏 9:16</option></select></label>
+            </div>
+            <div class="media-actions"><button id="localToolPreflight" class="secondary" type="button">检查素材与环境</button><button id="localToolExecute" class="primary" type="button" disabled>检查通过后生成</button></div>
+            <p id="localToolStatus" class="media-inline-status" role="status">选择功能并填写内容，然后检查。不会调用付费服务。</p>
+          </article>
+          <article id="mediaReferenceCard" class="media-card media-card-wide media-card-optional">
+            <div class="media-card-head"><h4>参考视频分析</h4><span class="media-tag">本机免费 · 研究入口</span></div>
+            <p class="media-hint">导入一个参考视频，提取场景结构、关键帧、运动/节奏和可用音频信息，供后续脚本与分镜借鉴。支持当前项目内路径，也支持本机绝对路径；不会自动下载网络链接。</p>
+            <div class="field-grid media-fields">
+              <label>参考视频路径
+                <input id="mediaReferencePath" placeholder="assets/reference/example.mp4 或 /Users/你/Downloads/example.mp4">
+              </label>
+              <label>分析深度
+                <select id="mediaReferenceDepth"><option value="standard">标准：场景 + 关键帧 + 节奏</option><option value="deep">深入：增加镜头内采样</option><option value="transcript_only">仅分析音频/字幕元数据</option></select>
+              </label>
+              <label>最多关键帧<input id="mediaReferenceMaxKeyframes" type="number" min="1" max="50" value="20"></label>
+            </div>
+            <div class="media-actions">
+              <button class="primary" type="button" id="mediaReferenceReview">分析参考视频</button>
+              <button class="secondary" type="button" id="mediaReferenceHypit">用这条参考片制作新视频 →</button>
+            </div>
+            <p class="media-hint">分析结果保存在当前项目，可供脚本和分镜研究。制作新视频会打开导演面板，由已配置的模型读图、规划并编写 Hypit 工程；参考片结构分析与完整语义理解会分别记录。</p>
+          </article>
+          <article id="mediaStockCard" class="media-card media-card-wide media-card-optional">
+            <div class="media-card-head"><h4>免费素材检索</h4><span class="media-tag">OpenMontage · 多来源</span></div>
+            <button type="button" class="secondary compact" id="stockReturn" hidden>返回刚才的制作阶段</button>
+            <p class="media-hint">按镜头关键词从 Archive.org、NASA、Wikimedia 等公共来源检索真实 B-roll（补充画面），先预检来源，再由你确认下载；系统会保存来源、作者和许可证信息，方便比赛交付时核验。</p>
+            <p class="media-hint">具体景点不一定有公开素材。可分别输入地点名、英文名或画面关键词；通用风景不能作为该景点的实拍证明。</p>
+            <div id="stockPlanSummary" class="media-hint" role="status"></div>
+            <button type="button" class="secondary compact" id="stockRebuildPlan">按当前方案重新整理</button>
+            <div id="stockShotResults" aria-live="polite"></div>
+            <details id="stockAdvanced"><summary>高级调整：关键词、素材类型与来源</summary>
+            <label>检索关键词（每行一条）
+              <textarea id="mediaStockQueries" rows="4" placeholder="南北湖晨雾湖湾\n云影掠过山脊\n古城夜景倒影"></textarea>
+            </label>
+            <div class="field-grid media-fields">
+              <label>素材类型
+                <select id="mediaStockKind"><option value="video" selected>视频 B-roll</option><option value="image">静态图片</option><option value="any">视频或图片</option></select>
+              </label>
+              <label>每个关键词最多下载
+                <input id="mediaStockClips" type="number" min="1" max="20" step="1" value="1">
+              </label>
+              <label>指定来源（可选）
+                <input id="mediaStockSources" placeholder="留空=按题材选择来源">
+              </label>
+              <label>画面方向
+                <select id="mediaStockOrientation"><option value="">不限制</option><option value="landscape">横屏</option><option value="portrait">竖屏</option><option value="square">方形</option></select>
+              </label>
+            </div>
+            </details>
+            <div class="media-actions">
+              <button class="secondary" type="button" id="mediaStockEstimate">预检素材源</button>
+              <button class="primary" type="button" id="mediaStockSearch">按方案查找素材（免费）</button>
+            </div>
+            <p class="media-hint">预检不联网、不写文件；执行会联网并写入 <code>assets/stock/clips/</code>、<code>assets/stock/thumbnails/</code> 与 <code>artifacts/stock_search_manifest.json</code>。素材下载是免费的，但仍需遵守各来源许可证。</p>
+          </article>
+          <article id="mediaAnalysisCard" class="media-card media-card-wide media-card-optional">
+            <div class="media-card-head"><h4>本地画面分析</h4><span class="media-tag">OpenMontage · 本机分析</span></div>
+            <p class="media-hint">对项目内视频抽取真实关键帧，或追踪人物脸部位置，便于检查构图、自动构图和后续质量复核。预检只读取依赖与源文件；执行前仍会二次确认，不会调用付费模型。</p>
+            <label>待分析视频路径（相对当前项目）
+              <input id="mediaAnalysisPath" type="text" placeholder="assets/video/source.mp4 或 renders/final.mp4">
+            </label>
+            <div class="field-grid media-fields">
+              <label>抽帧策略
+                <select id="mediaFrameStrategy">
+                  <option value="count" selected>均匀数量</option>
+                  <option value="interval">固定间隔</option>
+                  <option value="timestamps">指定时间点</option>
+                  <option value="scene_guided">按场景边界</option>
+                </select>
+              </label>
+              <label>抽取数量
+                <input id="mediaFrameCount" type="number" min="1" max="200" step="1" value="8">
+              </label>
+              <label>固定间隔（秒）
+                <input id="mediaFrameInterval" type="number" min="0.1" max="3600" step="0.1" value="5">
+              </label>
+              <label>指定时间点（秒，可选）
+                <input id="mediaFrameTimestamps" placeholder="例如 0, 3.5, 8">
+              </label>
+              <label>人脸采样 FPS
+                <input id="mediaFaceSampleFps" type="number" min="0.1" max="60" step="0.5" value="5">
+              </label>
+            </div>
+            <div class="media-actions">
+              <button class="secondary" type="button" id="mediaFrameEstimate">预检抽帧</button>
+              <button class="primary" type="button" id="mediaFrameExecute">抽取关键帧</button>
+              <button class="secondary" type="button" id="mediaFaceEstimate">预检人脸追踪</button>
+              <button class="primary" type="button" id="mediaFaceExecute">追踪人脸</button>
+            </div>
+            <p class="media-hint">关键帧输出到 <code>analysis/frames/</code>；人脸追踪 JSON 输出到 <code>analysis/face_tracking/</code>，并同步生成带 SHA-256 的阶段清单、检查点和事件记录。未安装 FFmpeg/OpenCV/MediaPipe 时会明确显示不可用，不生成占位文件。</p>
+          </article>
+          <article id="mediaTrimCard" class="media-card media-card-wide media-card-optional">
+            <div class="media-card-head"><h4>素材片段裁剪</h4><span class="media-tag">OpenMontage · 本机 FFmpeg</span></div>
+            <p class="media-hint">先把整段素材裁成准确的入点/出点，再加入多段合成。预检只读取文件元数据；执行只写入当前项目，不调用付费模型。</p>
+            <div class="field-grid media-fields">
+              <label>源视频路径（项目内相对路径）
+                <input id="mediaTrimInput" placeholder="assets/stock/clips/clip-01.mp4">
+              </label>
+              <label>起始秒数
+                <input id="mediaTrimStart" type="number" min="0" step="0.1" value="0">
+              </label>
+              <label>结束秒数（留空=到结尾）
+                <input id="mediaTrimEnd" type="number" min="0" step="0.1" placeholder="例如 6.5">
+              </label>
+              <label>编码方式
+                <select id="mediaTrimCodec"><option value="libx264" selected>精确重编码（推荐）</option><option value="copy">快速无损拷贝（切点可能贴近关键帧）</option></select>
+              </label>
+              <label>输出文件名
+                <input id="mediaTrimOutput" value="segment-01.mp4">
+              </label>
+            </div>
+            <div class="media-actions">
+              <button class="secondary" type="button" id="mediaTrimEstimate">预检裁剪</button>
+              <button class="primary" type="button" id="mediaTrimExecute">裁剪并保存片段</button>
+            </div>
+            <p class="media-hint">输出目录：<code>assets/trimmed/</code>；完成后可把输出路径填入“多段视频合成与质检”。</p>
+          </article>
+          <article id="mediaPostprocessCard" class="media-card media-card-wide media-card-optional">
+            <div class="media-card-head"><h4>节奏整理与画面增强</h4><span class="media-tag">OpenMontage · 本机 FFmpeg</span></div>
+            <p class="media-hint">把已经生成的视频做成可核验的后期产物：检测场景边界、整理旁白长停顿、转换画幅，或统一电影感色彩。预检只读取文件；确认后才写入派生文件，原视频不会被覆盖。</p>
+            <div class="field-grid media-fields">
+              <label>后期操作
+                <select id="mediaPostprocessOperation">
+                  <option value="silence_cut" selected>静音/长停顿整理</option>
+                  <option value="scene_detect">场景检测（只生成报告）</option>
+                  <option value="auto_reframe">自动构图与画幅转换</option>
+                  <option value="color_grade">电影感调色</option>
+                </select>
+              </label>
+              <label>输入视频路径（项目内相对路径）
+                <input id="mediaPostprocessInput" placeholder="renders/openmontage-compose.mp4">
+              </label>
+              <label id="mediaPostprocessOutputField">输出文件名
+                <input id="mediaPostprocessOutput" value="openmontage-processed.mp4" placeholder="视频操作用 .mp4；报告用 .json">
+              </label>
+              <label id="mediaPostprocessModeField">停顿处理方式
+                <select id="mediaPostprocessMode">
+                  <option value="remove" selected>删除停顿（紧凑跳剪）</option>
+                  <option value="speed_up">加速停顿（更平滑）</option>
+                  <option value="mark">只标记停顿（生成报告）</option>
+                </select>
+              </label>
+              <label id="mediaPostprocessThresholdField">静音阈值（dB）
+                <input id="mediaPostprocessThreshold" type="number" min="-90" max="-1" step="1" value="-35">
+              </label>
+              <label id="mediaPostprocessMinSilenceField">最短停顿（秒）
+                <input id="mediaPostprocessMinSilence" type="number" min="0.1" max="60" step="0.1" value="0.5">
+              </label>
+              <label id="mediaPostprocessPaddingField">说话边缘保留（秒）
+                <input id="mediaPostprocessPadding" type="number" min="0" max="10" step="0.01" value="0.08">
+              </label>
+              <label id="mediaPostprocessSpeedField">停顿加速倍率
+                <input id="mediaPostprocessSpeedFactor" type="number" min="1.5" max="100" step="0.5" value="6">
+              </label>
+              <label id="mediaPostprocessAspectField">目标画幅
+                <select id="mediaPostprocessAspect">
+                  <option value="portrait" selected>竖屏 9:16</option>
+                  <option value="vertical_4_5">竖屏 4:5</option>
+                  <option value="square">方形 1:1</option>
+                  <option value="landscape">横屏 16:9</option>
+                  <option value="cinematic">电影宽银幕 21:9</option>
+                </select>
+              </label>
+              <label id="mediaPostprocessProfileField">调色预设
+                <select id="mediaPostprocessProfile">
+                  <option value="cinematic_warm" selected>暖色电影</option>
+                  <option value="cinematic_cool">冷青橙电影</option>
+                  <option value="moody_dark">低调暗氛围</option>
+                  <option value="bright_clean">明亮清透</option>
+                  <option value="vintage_film">复古胶片</option>
+                  <option value="high_contrast">高反差</option>
+                  <option value="neutral">自然校正</option>
+                </select>
+              </label>
+              <label id="mediaPostprocessIntensityField">调色强度（0—1）
+                <input id="mediaPostprocessIntensity" type="number" min="0" max="1" step="0.05" value="0.85">
+              </label>
+              <label id="mediaPostprocessSceneMethodField">场景检测方法
+                <select id="mediaPostprocessSceneMethod">
+                  <option value="content" selected>内容变化</option>
+                  <option value="threshold">亮度阈值</option>
+                  <option value="adaptive">自适应</option>
+                </select>
+              </label>
+              <label id="mediaPostprocessSceneThresholdField">检测阈值（可选）
+                <input id="mediaPostprocessSceneThreshold" type="number" min="0" step="0.1" placeholder="留空=工具默认">
+              </label>
+              <label id="mediaPostprocessSceneMinLengthField">最短镜头（秒）
+                <input id="mediaPostprocessSceneMinLength" type="number" min="0.1" max="600" step="0.1" value="1">
+              </label>
+            </div>
+            <div class="media-actions">
+              <button class="secondary" type="button" id="mediaPostprocessEstimate">预检后期计划</button>
+              <button class="primary" type="button" id="mediaPostprocessExecute">执行视频后期</button>
+            </div>
+            <p class="media-hint">静音整理适合带旁白的视频；自动构图在未安装人脸跟踪依赖时会安全退回中心裁切；场景检测只写 JSON 报告。输出会自动加入项目预览与可复用素材。</p>
+          </article>
+          <article id="mediaNarrationCard" class="media-card" data-workspace-group="edit" data-settings-column="copy" role="tabpanel" aria-labelledby="settingsTabCopy">
+            <div class="media-card-head"><h4>旁白文案</h4><span class="media-tag">原文保留 · 分段可编辑</span></div>
+            <label>旁白分段（每行一段，按顺序分配时间）
+              <textarea id="mediaSegments" rows="5" placeholder="第一段旁白\n第二段旁白\n第三段旁白"></textarea>
+            </label>
+            <p class="media-hint">这里的同一份分段文字用于配音与字幕，切换标签不会清空内容。先核对文字，再到音频或字幕完成制作。</p>
+          </article>
+          <article id="mediaVoiceCard" class="media-card" data-workspace-group="edit" data-settings-column="audio" role="tabpanel" aria-labelledby="settingsTabAudio" hidden>
+            <div class="media-card-head"><h4>旁白声音</h4><span class="media-tag">先检查，再生成</span></div>
+            <p class="media-hint">使用「文案」中已确认的分段文字。云端声音仍需单独确认费用与授权。</p>
+            <div class="field-grid media-fields">
+              <label>配音服务
+                <select id="mediaAudioProvider">
+                  <option value="macos" selected>本机 macOS Tingting（免费草稿）</option>
+                  <option value="piper">离线配音 Piper（免费）</option>
+                  <option value="auto">自动选择（云端优先，可能收费）</option>
+                </select>
+              </label>
+              <label id="mediaPiperModelField" hidden>离线音色
+                <select id="mediaPiperModel"><option value="zh_CN-huayan-medium">中文 · 华言</option><option value="en_US-lessac-medium">英文 · Lessac</option></select>
+              </label>
+              <label>语速倍率
+                <input id="mediaAudioRate" type="number" min="0.25" max="2" step="0.05" value="1">
+              </label>
+            </div>
+            <p class="media-hint">默认使用本机 macOS 声音生成可试听草稿，不需要云端密钥；要用更有表现力的云端声音，请切换“自动选择”，系统会先估算并再次确认是否授权。</p>
+            <div class="media-actions">
+              <button class="secondary" type="button" id="mediaEstimateAudio">检查配音服务</button>
+              <button class="primary" type="button" id="mediaRenderAudio">生成旁白（本机免费 / 云端需授权）</button>
+            </div>
+          </article>
+          <article id="mediaSubtitleCard" class="media-card" data-workspace-group="edit" data-settings-column="subtitle" role="tabpanel" aria-labelledby="settingsTabSubtitle" hidden>
+            <div class="media-card-head"><h4>字幕制作</h4><span class="media-tag">保留独立版本</span></div>
+            <p class="media-hint">已有录音可自动转录；或直接使用「文案」中的分段文字生成字幕文件。时间与错字仍需人工核对。</p>
+            <details class="narration-import"><summary>已有录音或视频？自动识别字幕</summary>
+            <label>待识别媒体路径（相对当前项目）
+              <input id="mediaTranscriptPath" type="text" placeholder="assets/video/source.mp4 或 assets/audio/reference.wav">
+            </label>
+            <p class="media-hint">在本机识别音视频里的说话内容，并生成带时间轴的字幕。</p>
+            <div class="field-grid media-fields">
+            <label>识别模型
+              <select id="mediaTranscriptModel">
+                <option value="base">base · 快速草稿</option>
+                <option value="small" selected>small · 更细的识别，耗时较长</option>
+              </select>
+            </label>
+            <label>字幕时间定位
+              <select id="mediaTranscriptAlignment">
+                <option value="faster_whisper" selected>标准定位 · 自动识别语言</option>
+                <option value="whisperx_zh">中文精细定位 · 适合逐字高亮</option>
+              </select>
+            </label>
+            </div>
+            <p class="media-hint">精细定位使用本机 WhisperX，单次最多 120 秒；仍须核对错字。每次生成保留独立版本。</p>
+            <div class="media-actions">
+              <button class="primary" type="button" id="mediaTranscribe">自动转录并生成字幕</button>
+            </div>
+            <div id="mediaTranscriptReview" hidden>
+              <label>识别结果 · 请先核对错字
+                <textarea id="mediaTranscriptText" rows="4"></textarea>
+              </label>
+              <p class="media-hint">每行对应一个原字幕段。改字时保持分段，精细定位会重新核对配音；原字幕保留。</p>
+              <div class="media-actions">
+                <button class="secondary" type="button" id="mediaTranscriptCorrect">校对后做精细定位</button>
+                <button class="secondary" type="button" id="mediaTranscriptAnimate">用已保存字幕做逐字高亮</button>
+              </div>
+              <p class="media-hint">按钮会带入素材和字幕，进入导出工具供你检查。未保存的文字修改要先重新定位，再导出高亮。</p>
+            </div>
+            </details>
+            <div class="media-actions">
+              <button class="primary" type="button" id="mediaRenderSubtitles">生成字幕文件</button>
+            </div>
+          </article>
+          <article id="mediaAudioEnhanceCard" class="media-card media-card-optional" data-settings-column="audio" role="tabpanel" aria-labelledby="settingsTabAudio">
+            <div class="media-card-head"><h4>旁白清理与响度规范化</h4><span class="media-tag">本机免费</span></div>
+            <p class="media-hint">对已经生成的旁白做降噪、压缩、均衡和响度统一，原文件保留不覆盖。</p>
+            <label>输入音频/视频路径
+              <input id="mediaAudioEnhanceInput" placeholder="assets/audio/narration.mp3">
+            </label>
+            <label>处理预设
+              <select id="mediaAudioEnhancePreset">
+                <option value="clean_speech" selected>清晰人声</option>
+                <option value="noise_reduce">强降噪</option>
+                <option value="normalize_only">仅响度规范化</option>
+                <option value="podcast">播客质感</option>
+                <option value="broadcast">广播级紧致动态</option>
+                <option value="voice_clarity">人声清晰度增强</option>
+              </select>
+            </label>
+            <label>输出文件名
+              <input id="mediaAudioEnhanceOutput" value="narration-enhanced.m4a">
+            </label>
+            <div class="media-actions">
+              <button class="primary" type="button" id="mediaAudioEnhanceExecute">清理并保存旁白</button>
+            </div>
+          </article>
+          <article id="mediaImageCard" class="media-card media-card-optional">
+            <div class="media-card-head"><h4>分镜图 / 素材</h4><span class="media-tag">服务可用状态</span></div>
+            <label>分镜提示词（每行一条）
+              <textarea id="mediaImagePrompts" rows="5" placeholder="南北湖晨雾湖湾，低机位推进，电影级风景\n古城屋檐与远山，光影匹配转场"></textarea>
+            </label>
+            <div class="media-actions">
+              <button class="secondary" type="button" id="mediaEstimateImages">免费评估生图</button>
+              <button class="danger-outline" type="button" id="mediaRenderImages">生成分镜图（需授权）</button>
+            </div>
+          </article>
+          <article id="mediaMontageCard" class="media-card media-card-wide media-card-optional">
+            <div class="media-card-head"><h4>OpenMontage 制作室</h4><span class="media-tag">导演 · 工具 · 动画 · 切片</span></div>
+            <div id="montageTools"></div>
+          </article>
+          <article id="mediaStillComposeCard" class="media-card media-card-wide media-card-optional">
+            <div class="media-card-head"><h4>分镜图转动态视频</h4><span class="media-tag">本机免费 · FFmpeg</span></div>
+            <p class="media-hint">没有视频模型或暂不想付费时，可把已生成的分镜图做成带轻微推镜的动态片段，再沿用同一套转场、旁白、字幕和质检流程。它是真实本机合成，不冒充视频模型生成。</p>
+            <label>分镜图路径（每行一张，项目内相对路径）
+              <textarea id="mediaStillImages" rows="4" placeholder="assets/storyboard/shot-01.png\nassets/storyboard/shot-02.png"></textarea>
+            </label>
+            <div class="field-grid media-fields">
+              <label>每张图时长（秒）<input id="mediaStillDuration" type="number" min="1" max="60" step="0.5" value="5"></label>
+              <label>转场
+                <select id="mediaStillTransition"><option value="crossfade">交叉淡化（crossfade）</option><option value="cut">硬切（cut）</option><option value="fade">黑场淡入淡出（fade）</option></select>
+              </label>
+              <label>输出文件名<input id="mediaStillOutputName" value="openmontage-stills-compose.mp4"></label>
+            </div>
+            <div class="media-actions">
+              <button class="primary" type="button" id="mediaComposeStills">用分镜图生成动态视频</button>
+            </div>
+            <p class="media-hint">生成后会写入 <code>renders/still_clips/</code>、<code>renders/</code> 和 <code>artifacts/still_composition_manifest.json</code>，并自动填入交付视频路径。</p>
+          </article>
+          <article id="mediaVideoComposeCard" class="media-card media-card-wide" data-settings-column="video" role="tabpanel" aria-labelledby="settingsTabVideo">
+            <div class="media-card-head"><h4>剪辑与合成视频</h4><span class="media-tag">本机 FFmpeg</span></div>
+            <label>项目内视频路径（每行一个，例如 renders/shot-01.mp4）
+              <textarea id="mediaClips" rows="4" placeholder="renders/shot-01.mp4\nrenders/shot-02.mp4"></textarea>
+            </label>
+            <div class="field-grid media-fields">
+              <label>转场
+                <select id="mediaTransition"><option value="cut">硬切（cut）</option><option value="crossfade">交叉淡化（crossfade）</option><option value="fade">黑场淡入淡出（fade）</option></select>
+              </label>
+              <label>旁白路径（可选）<input id="mediaAudioPath" placeholder="assets/audio/narration.mp3"></label>
+              <label>字幕路径（可选）<input id="mediaSubtitlePath" placeholder="subtitles/subtitles.srt"></label>
+              <label>输出文件名<input id="mediaOutputName" value="openmontage-compose.mp4"></label>
+            </div>
+            <div class="media-actions">
+              <button class="primary" type="button" id="mediaCompose">本机合成视频</button>
+
+            </div>
+          </article>
+          <article id="mediaMusicCard" class="media-card media-card-wide media-music-card" data-settings-column="audio" role="tabpanel" aria-labelledby="settingsTabAudio">
+            <div class="media-card-head"><h4>添加背景音乐（可选）</h4><span class="media-tag">本机配乐 · 免费 · 无需密钥</span></div>
+            <p class="media-hint">选择你有权使用的音乐，系统会按目标时长裁剪或循环、结尾淡出，再带入最终混音。文件只发送到本机工作台；这是已有音乐配乐，不是 AI 作曲。</p>
+            <label>选择音乐文件（MP3、WAV、M4A、AAC、OGG、FLAC，最多 40 MB）<input id="localBgmFile" type="file" accept=".mp3,.wav,.m4a,.aac,.ogg,.flac"></label>
+            <audio id="localBgmPreview" controls hidden preload="metadata"></audio>
+            <label>配乐时长（秒）<input id="localBgmDuration" type="number" min="3" max="600" step="0.1" value="30"></label>
+            <div class="media-actions">
+              <button type="button" class="secondary" id="localBgmReadDuration">使用当前成片时长</button>
+              <button type="button" class="primary" id="localBgmImport">制作配乐并带入混音（免费）</button>
+            </div>
+            <p id="localBgmStatus" class="media-inline-status" role="status">选择音乐即可试听；已有配乐和原始文件都会保留。</p>
+            <details class="operation-details"><summary>没有音乐文件？本机合成器乐 / 可选云端作曲</summary>
+            <p class="media-hint">本机合成免费，无需密钥，提供国风氛围、电影铺底、纪录片预设；这是合成器作曲，适合先做配乐草稿。已有歌曲仍可从上方导入。云端 ElevenLabs 是可选服务，只有明确选择并确认后才会调用。</p>
+            <label>音乐提示词
+              <textarea id="mediaMusicPrompt" rows="4" placeholder="电影级浙江文旅器乐：南北湖晨雾、湖光山色与古城夜色，前段留白，中段逐步开阔，高潮短暂抬升，结尾温柔收束；无歌词、无歌声，给旁白留出空间。">电影级浙江文旅器乐：南北湖晨雾、湖光山色与古城夜色，前段留白，中段逐步开阔，高潮短暂抬升，结尾温柔收束；无歌词、无歌声，给旁白留出空间。</textarea>
+            </label>
+            <div class="field-grid media-fields">
+              <label>参考无 BGM 成片（推荐，可选）
+                <input id="mediaMusicReferenceVideo" placeholder="renders/openmontage-compose.mp4">
+              </label>
+              <label>目标时长（秒）
+                <input id="mediaMusicDuration" type="number" min="3" max="600" step="0.1" placeholder="留空=从参考成片读取">
+              </label>
+              <label>音乐服务
+                <select id="mediaMusicProvider"><option value="local" selected>本机预设合成 · 免费</option><option value="elevenlabs">ElevenLabs Music · 云端付费</option></select>
+              </label>
+              <label data-local-music-option>本机器乐风格
+                <select id="mediaMusicLocalStyle"><option value="guofeng_ambient">国风氛围 · 五声音阶</option><option value="cinematic">电影铺底 · 渐进层次</option><option value="documentary">纪录片 · 简洁节奏</option></select>
+              </label>
+              <label data-local-music-option>节奏（每分钟拍数）
+                <input id="mediaMusicLocalTempo" type="number" min="50" max="120" step="1" value="72">
+              </label>
+              <label>输出文件名
+                <input id="mediaMusicOutput" value="generated-bgm.mp3" placeholder="generated-bgm.mp3">
+              </label>
+            </div>
+            <label class="check-row"><input id="mediaMusicInstrumental" type="checkbox" checked> <span>仅生成器乐（避免歌声盖住旁白）</span></label>
+            <div class="media-actions">
+              <button class="secondary" type="button" id="mediaMusicReadDuration">读取参考成片时长</button>
+              <button class="secondary" type="button" id="mediaMusicEstimate">免费预检 BGM</button>
+              <button class="primary" type="button" id="mediaMusicExecute" disabled title="先完成免费预检；服务不可用时不会产生文件">预检通过后生成 BGM</button>
+            </div>
+            <p id="mediaMusicStatus" class="media-inline-status" aria-live="polite">等待无 BGM 成片；先点击“免费预检 BGM”查看时长、节奏计划和费用。</p>
+            <p class="media-hint">完成后自动带入“最终混音”，原音乐保留。本机预设主要支持器乐铺底；不会声称理解了整段参考视频的内容。云端服务不可用时不会自动切换提供者。</p>
+            </details>
+          </article>
+          <article id="mediaAudioMixCard" class="media-card media-card-wide" data-settings-column="audio" role="tabpanel" aria-labelledby="settingsTabAudio">
+            <div class="media-card-head"><h4>最终混音：旁白、BGM 与响度</h4><span class="media-tag">OpenMontage · 本机 FFmpeg</span></div>
+            <p class="media-hint">无 BGM 成片通过质检、BGM 生成后再来这里做最终声音设计。默认会在旁白出现时自动压低 BGM（ducking），上方生成的 BGM 会自动带入，不需要复制路径。</p>
+            <div class="field-grid media-fields">
+              <label>操作
+                <select id="mediaAudioOperation">
+                  <option value="full_mix" selected>旁白 + BGM 自动压低（推荐）</option>
+                  <option value="duck">旁白出现时压低 BGM</option>
+                  <option value="mix">多轨混音（使用轨道清单）</option>
+                  <option value="extract">从视频抽取音频</option>
+                  <option value="segmented_music">按时间片段把 BGM 后置到视频</option>
+                </select>
+              </label>
+              <label>主音频 / 旁白 / 抽取源
+                <input id="mediaAudioPrimary" placeholder="assets/audio/narration.mp3 或 renders/video.mp4">
+              </label>
+              <label>BGM / 副音频
+                <input id="mediaAudioSecondary" placeholder="生成或导入配乐后自动填入">
+              </label>
+              <label>后置 BGM 的视频（仅分段 BGM）
+                <input id="mediaAudioVideo" placeholder="renders/openmontage-compose.mp4">
+              </label>
+              <label>输出文件名
+                <input id="mediaAudioOutput" value="openmontage-mix.wav" placeholder="混音用 .wav；分段 BGM 用 .mp4">
+              </label>
+              <label>旁白时 BGM 音量（0—1）
+                <input id="mediaAudioMusicVolume" type="number" min="0" max="1" step="0.05" value="0.15">
+              </label>
+              <label>响度目标（LUFS）
+                <input id="mediaAudioLufs" type="number" min="-40" max="0" step="1" value="-16">
+              </label>
+              <label>目标时长（秒，可选）
+                <input id="mediaAudioTargetDuration" type="number" min="0.1" step="0.1" placeholder="full_mix 可填视频总时长">
+              </label>
+            </div>
+            <label>多轨清单（mix/full_mix/duck 可用；每行：路径 | 角色 | 音量 | 起始秒数）
+              <textarea id="mediaAudioTracks" rows="3" placeholder="assets/audio/narration.mp3 | speech | 1 | 0\nassets/music/bgm.mp3 | music | 0.3 | 0\nassets/audio/wind.wav | sfx | 0.2 | 4"></textarea>
+            </label>
+            <label>分段 BGM 时间（仅 segmented_music；每行：开始秒-结束秒）
+              <textarea id="mediaAudioSegments" rows="2" placeholder="0-12\n28-36"></textarea>
+            </label>
+            <div class="media-actions">
+              <button class="secondary" type="button" id="mediaAudioMixEstimate">预检音频后期</button>
+              <button class="primary" type="button" id="mediaAudioMixExecute">执行音频后期</button>
+            </div>
+            <p class="media-hint">预检只读取项目文件和 FFmpeg 能力；执行后输出会写入 <code>assets/audio/processed/</code>，分段 BGM 视频写入 <code>renders/</code>，并生成音频后期清单。</p>
+          </article>
+          <article id="mediaQualityCard" class="media-card media-card-wide" data-workspace-group="delivery">
+            <div class="media-card-head"><h4>检查成片</h4><span class="media-tag">本机免费</span></div>
+            <p class="media-hint">先检查成片是否能正常播放、声音是否正常、是否存在黑帧。合成后会自动使用最新成片，也可手动填写项目内的视频路径。</p>
+            <label>待检查视频（可选，每行一个；留空使用下方交付视频）<textarea id="mediaQualityPaths" rows="2" placeholder="renders/openmontage-compose.mp4"></textarea></label>
+            <div class="field-grid media-fields quality-options">
+              <label>质检抽帧数量
+                <input id="mediaQualityFrames" type="number" min="0" max="12" step="1" value="4">
+              </label>
+              <label class="checkbox-label"><input id="mediaQualityAudio" type="checkbox" checked>检查音频电平与静音</label>
+              <label class="checkbox-label"><input id="mediaQualityBlack" type="checkbox" checked>检查黑帧/空画面</label>
+              <label class="checkbox-label"><input id="mediaQualitySubtitles" type="checkbox" checked>检查字幕文件（SRT/VTT 校验时间顺序与时长，不验证音画同步）</label>
+            </div>
+            <div class="media-actions"><button class="primary" type="button" id="mediaQuality">运行技术质检</button></div>
+          </article>
+          <article id="mediaPublishCard" class="media-card media-card-wide">
+            <div class="media-card-head"><h4>交付包与产物预览</h4><span class="media-tag">本机导出 · 不上传</span></div>
+            <p class="media-hint">把已通过质检的视频、字幕和封面概念整理成可直接交给平台的文件夹，并写入 publish_log。导出不会登录或上传抖音、YouTube 等平台。</p>
+            <div class="field-grid media-fields">
+              <label>交付视频路径
+                <input id="mediaPublishVideo" placeholder="renders/openmontage-compose.mp4">
+              </label>
+              <label>交付标题
+                <input id="mediaPublishTitle" placeholder="南北湖：沿着一阵风去旅行">
+              </label>
+              <label>简介（可选）
+                <input id="mediaPublishDescription" placeholder="浙江文旅风景短视频">
+              </label>
+              <label>标签（逗号分隔）
+                <input id="mediaPublishTags" placeholder="南北湖,浙江文旅,风景">
+              </label>
+              <label>话题（逗号分隔）
+                <input id="mediaPublishHashtags" placeholder="#南北湖,#浙江旅行">
+              </label>
+              <label>平台记录
+                <select id="mediaPublishPlatform"><option value="local">本机交付包（不上传）</option><option value="douyin">抖音（仅记录，不上传）</option><option value="youtube">YouTube（仅记录，不上传）</option></select>
+              </label>
+            </div>
+            <div class="media-actions">
+              <button class="primary" type="button" id="mediaPublish">导出本机交付包</button>
+            </div>
+          </article>
+        </div>
+        <div id="mediaPreview" class="media-preview" hidden>
+          <div class="media-card-head"><h4>最新媒体产物</h4><span class="media-tag">点击预览</span></div>
+          <div id="mediaPreviewGrid" class="media-preview-grid"></div>
+        </div>
+        <details class="operation-details"><summary>查看操作记录与详细结果</summary><pre id="mediaOutput" class="raw media-output">尚未执行操作。</pre></details>
+      </section>
+    </aside>
+  </section>
+</main>
+
+<dialog id="confirmDialog">
+  <form method="dialog" class="confirm-card" id="confirmForm">
+    <p class="eyebrow">CREATOR CONFIRMATION</p>
+    <h2>确认提交一次付费视频任务？</h2>
+    <p id="confirmText">系统将再次校验预算，然后调用已配置的 provider。提交后可能产生实际费用，不能用刷新页面撤销。</p>
+    <div class="confirm-actions">
+      <button value="cancel" class="secondary">暂不提交</button>
+      <button value="confirm" class="danger" id="confirmSubmit">确认提交</button>
+    </div>
+  </form>
+</dialog>
+
+<script src="/ui/stock-plan.js"></script>
+<link rel="stylesheet" href="/ui/montage-studio.css?v=20261002c">
+<script src="/ui/montage-studio.js?v=20261002c"></script>
+<script src="/ui/montage-tools.js?v=20261002a"></script>
+<script type="module" src="/ui/model.js?v=20261002a"></script>
+</body>
+</html>

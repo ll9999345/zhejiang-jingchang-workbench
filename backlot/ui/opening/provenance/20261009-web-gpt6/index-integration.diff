@@ -1,0 +1,14 @@
+--- index.before.html
++++ index.html
+@@ -29,8 +29,11 @@
+ </style>
+ <link rel="stylesheet" href="/ui/studio.css?v=20261001a">
+ <link rel="stylesheet" href="/ui/theme.css?v=20260930e">
++<link rel="stylesheet" href="/ui/opening/opening.css?v=20261009-web-gpt6">
+ <script defer src="/ui/vendor/motion-12.23.24.js"></script>
+ <script defer src="/ui/studio.js?v=20261002canvas"></script>
++<script defer src="/ui/opening/terrain.js?v=20261009-web-gpt6"></script>
++<script defer src="/ui/opening/opening.js?v=20261009-web-gpt6"></script>
+ </head>
+ <body data-studio-page="library">
+ <div class="wrap">

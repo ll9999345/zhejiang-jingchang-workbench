@@ -1,0 +1,50 @@
+/* All workbench text uses the bundled, unmodified OFL WenKai Regular face. */
+@font-face {
+  font-family:"Zhejiang WenKai";
+  src:url("/ui/fonts/LXGWWenKaiLite-Regular.ttf") format("truetype");
+  font-style:normal;
+  font-weight:400;
+  font-display:swap;
+}
+:root {
+  --studio-type:"Zhejiang WenKai","PingFang SC",sans-serif;
+  --sans:var(--studio-type);
+  --mono:var(--studio-type);
+  --screenplay:var(--studio-type);
+  --studio-editorial:var(--studio-type);
+  --studio-controls:var(--studio-type);
+}
+/* Icon fonts, if introduced, keep their own face; SVG icons are untouched. */
+body[data-unified-canvas],
+body[data-unified-canvas] :where(*):not(svg):not(svg *):not([data-icon-font]):not([data-icon-font] *):not(.iconfont):not(.material-icons):not(.material-symbols-outlined):not(.material-symbols-rounded):not(.material-symbols-sharp):not(.fa):not(.fas):not(.far):not(.fab):not([class^="fa-"]):not([class*=" fa-"]) {
+  font-family:var(--studio-type)!important;
+  font-synthesis:none;
+}
+body[data-unified-canvas] :is(input,textarea)::placeholder,
+body[data-unified-canvas] input::file-selector-button {
+  font-family:var(--studio-type)!important;
+  font-synthesis:none;
+}
+body[data-unified-canvas] :is(h1,h2,#workspaceHeading) { font-weight:400; }
+body[data-unified-canvas] :is(button,input,select,textarea,option,optgroup) { font-weight:400; }
+body[data-unified-canvas] :is(small,.eyebrow,.studio-nav-label,.studio-sidebar-footer,.studio-command footer,.studio-command-hint,.lib-meta,.lib-stage-link,.lib-board-link,.studio-motion-label) { font-size:12px; line-height:1.45; }
+body[data-unified-canvas] :is(input[type="number"],time,.cost .nums) { font-variant-numeric:tabular-nums; }
+/* Native select semantics are retained. Supported browsers render the picker
+   in the page so downloaded fonts also apply to the expanded options. */
+@supports (appearance:base-select) {
+  body[data-unified-canvas] select,
+  body[data-unified-canvas] select::picker(select) { appearance:base-select; }
+  body[data-unified-canvas] select::picker(select) {
+    font-family:var(--studio-type)!important;
+    font-size:14px;
+    font-weight:400;
+    line-height:1.6;
+    color:var(--t-1,#eeeaff);
+    background:var(--s-2,#201e3b);
+    border:1px solid var(--edge,#ffffff30);
+    border-radius:10px;
+    padding:5px;
+    box-shadow:0 10px 28px #0004;
+  }
+  body[data-unified-canvas] select option { font:400 14px/1.6 var(--studio-type); padding:4px 9px; border-radius:5px; }
+}
